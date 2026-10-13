@@ -1509,6 +1509,12 @@
   .radio-nav:not(.is-on){padding-left:6px;padding-right:6px;}
   /* eir desktop prototype: a real width inside the editorial grid (auto margins had shrunk it to its minimum) */
   .case-wide > .xp-desk,.xp.xp-desk{width:100%;max-width:880px;justify-self:center;margin-left:auto;margin-right:auto;}
+  /* photo-strip hover labels wrap inside the frame */
+  .booth-hero .booth-tag{white-space:normal;max-width:calc(100% - 14px);line-height:1.25;padding:5px 8px;}
+  /* cat photos in the bubble are clickable */
+  .cat-photo{cursor:pointer;}
+  /* photo-strip labels: one face for all three, small enough that the longest stays on one line */
+  .booth-hero .booth-tag{font:400 12px/1 var(--sans);letter-spacing:0;white-space:nowrap;max-width:none;padding:5px 7px;left:6px;bottom:6px;}
 
 
   /* photo-booth strip: white paper, three frames, the brand stamped at the bottom */
@@ -3162,7 +3168,19 @@ document.querySelectorAll('[data-doc]').forEach(function(doc){
     'Morris does QA. I do snack research. Elena does the actual work, <a href="#work">see the cases</a>.'
   ];
   var corrLine = 0;
-  var line = 0, tuckTimer = null;
+  var line = 0, tuckTimer = null, who = 'morris';
+  function nextPhoto(){
+    var list = who === 'corr' ? CORR : LINES, at = who === 'corr' ? corrLine : line;
+    for(var k = 0; k < list.length; k++){
+      var i = (at + k) % list.length;
+      if(list[i].indexOf('cat-photo') !== -1){
+        say(list[i], 9000); tuckLater(10000);
+        if(who === 'corr'){ corrLine = i + 1; } else { line = i + 1; }
+        markPhotos(); return;
+      }
+    }
+  }
+  function markPhotos(){ text.querySelectorAll('.cat-photo').forEach(function(im){ im.title = 'Next photo'; }); }
   function say(html, ms){
     text.innerHTML = html;
     bubble.hidden = false;
@@ -3188,21 +3206,26 @@ document.querySelectorAll('[data-doc]').forEach(function(doc){
   }
 
   document.getElementById('corrBtn').addEventListener('click', function(){
+    who = 'corr';
     meow(0.78);
     peek();
     say(CORR[corrLine % CORR.length], 7000);
     corrLine++;
+    markPhotos();
     tuckLater(8000);
   });
   btn.addEventListener('click', function(){
+    who = 'morris';
     meow();
     peek();
     say(LINES[line % LINES.length], 7000);
     line++;
+    markPhotos();
     tuckLater(8000);
   });
   document.getElementById('catX').addEventListener('click', function(){ bubble.hidden = true; tuck(); });
   bubble.addEventListener('click', function(e){
+    if(e.target.closest('.cat-photo')){ e.preventDefault(); nextPhoto(); return; }
     var a = e.target.closest('a');
     if(!a) return;
     if(a.hasAttribute('data-radio')){
