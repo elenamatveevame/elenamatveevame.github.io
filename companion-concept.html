@@ -1,4 +1,4 @@
-<title>AI Companion · Home Screen Concepts · Elena Matveeva</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600&family=Geist+Mono&display=swap"><title>AI Companion · Home Screen Concepts · Elena Matveeva</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1458,6 +1458,18 @@ td .sw { display: inline-block; vertical-align: -2px; margin-right: 8px; }
   </div>
 </template>
 
+<nav class="site-bar"><a class="sb-brand" href="/" aria-label="Elena Matveeva, home">elena.<i></i></a><a class="sb-back" href="/ai-companion"><span>&lt;</span> back to the case</a></nav>
+<style>
+body{margin:0;}
+.site-bar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:16px;height:64px;padding:0 max(24px,calc((100vw - 1120px)/2));background:rgba(255,255,255,.92);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid #E4E4E3;font-family:'Geist',system-ui,sans-serif;}
+.site-bar a{color:#141413;text-decoration:none;}
+.sb-brand{font:600 18px/1 'Geist',system-ui,sans-serif;letter-spacing:-.01em;display:inline-flex;align-items:baseline;}
+.sb-brand i{display:inline-block;width:10px;height:2px;margin-left:2px;background:#2F5FDE;}
+.sb-back{font:400 13.5px/1 'Geist Mono',ui-monospace,monospace;}
+.sb-back span{color:#2F5FDE;}
+.site-bar a:hover{color:#2F5FDE;}
+@media (max-width:600px){.site-bar{padding:0 16px;}}
+</style>
 <main class="board" id="board" data-motion="full" data-phone-theme="light" data-transparency="full">
 
   <header class="intro">
