@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<base target="_blank">
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+Arabic:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a corridor noticeboard. Header with language + tabs, one working column; room codes set like door plates. */
+:root{
+  --bg:#F3F5F2; --surface:#FFFFFF; --ink:#16211D; --muted:#5B6963; --line:#D8E0DA; --tint:#E8EEEA;
+  --accent:#0E6A58; --accent-ink:#FFFFFF; --mark:#FBE38A; --mark-ink:#3A2E00;
+  --warn:#B3402A; --warn-bg:#FBE8E3; --ok:#1F7A45; --ok-bg:#E2F3E8;
+  --f-display:"Bricolage Grotesque","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","IBM Plex Sans Arabic",system-ui,-apple-system,sans-serif;
+  --f-code:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1613; --surface:#16201B; --ink:#E6EEE9; --muted:#9AABA3; --line:#2A3631; --tint:#1B2621;
+  --accent:#52C4A8; --accent-ink:#05251D; --mark:#5A480C; --mark-ink:#FCE9A6;
+  --warn:#F0896F; --warn-bg:#3A1C15; --ok:#7FD6A0; --ok-bg:#15301F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1613; --surface:#16201B; --ink:#E6EEE9; --muted:#9AABA3; --line:#2A3631; --tint:#1B2621;
+  --accent:#52C4A8; --accent-ink:#05251D; --mark:#5A480C; --mark-ink:#FCE9A6;
+  --warn:#F0896F; --warn-bg:#3A1C15; --ok:#7FD6A0; --ok-bg:#15301F; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:980px;margin:0 auto;padding-inline:16px;padding-block:20px 64px;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:1.75rem;font-weight:800;letter-spacing:-.01em}
+h2{font-size:1.2rem;font-weight:600}
+h3{font-size:1rem;font-weight:600}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+button,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.code{font-family:var(--f-code);font-size:.86em;font-weight:500;white-space:nowrap}
+.plate{font-family:var(--f-code);font-weight:500;font-size:.85em;border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:1px 6px;white-space:nowrap}
+
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.eyebrow{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:none;padding:6px 12px;font-size:.9rem}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.demo{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem;background:var(--tint);border-radius:8px;padding:8px 12px;color:var(--muted)}
+.linkbtn{background:none;border:0;padding:0;text-decoration:underline;color:var(--ink);font-size:.85rem}
+
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+nav.tabs button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;font-weight:500;color:var(--muted);white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+
+.grid2{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:760px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+
+.roompick{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.roompick select{font-family:var(--f-code);font-weight:500;padding:6px 10px;border-radius:6px;border:1px solid var(--line);background:var(--surface)}
+
+.next{display:flex;gap:16px;align-items:center}
+.cal{flex:none;width:64px;border:1px solid var(--line);border-radius:8px;overflow:hidden;text-align:center;background:var(--surface)}
+.cal .m{background:var(--accent);color:var(--accent-ink);font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 0}
+.cal .d{font-family:var(--f-display);font-weight:800;font-size:1.6rem;line-height:1.2}
+.cal .w{font-size:.75rem;color:var(--muted);padding-bottom:4px}
+
+ul.duties{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+ul.duties li{display:grid;grid-template-columns:5.5rem minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding-block:10px;border-top:1px solid var(--line)}
+ul.duties li:first-child{border-top:0}
+ul.duties li.past{opacity:.5}
+.dlabel{font-weight:600;font-variant-numeric:tabular-nums}
+.dlabel .w{display:block;font-weight:400;font-size:.8rem;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.chip{font-size:.75rem;font-weight:600;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.chip.warn{background:var(--warn-bg);color:var(--warn)}
+.chip.ok{background:var(--ok-bg);color:var(--ok)}
+.chip.neutral{background:var(--tint);color:var(--muted)}
+.chip.mark{background:var(--mark);color:var(--mark-ink)}
+.actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+@media (max-width:480px){ul.duties li{grid-template-columns:4.5rem minmax(0,1fr)} .actions{grid-column:2;justify-content:flex-start}}
+
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:5px 12px;font-size:.88rem;font-weight:500}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.ghost{border-color:transparent;background:none;text-decoration:underline;padding-inline:4px}
+
+.days{display:flex;flex-wrap:wrap;gap:6px}
+.days button{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:6px 10px;min-width:3rem;font-size:.88rem}
+.days button[aria-pressed="true"]{background:var(--warn-bg);border-color:var(--warn);color:var(--warn);font-weight:600;text-decoration:line-through}
+
+.req{border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.req.open{border-color:var(--accent)}
+.reqtop{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{display:flex;justify-content:space-between;gap:8px;align-items:center;text-align:start;border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:8px 10px;width:100%}
+.opt[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table.rota{border-collapse:collapse;width:100%;min-width:760px;font-size:.85rem}
+.rota th,.rota td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+.rota thead th{position:sticky;top:0;background:var(--accent);color:var(--accent-ink);font-weight:600;font-size:.8rem;white-space:nowrap}
+.rota tbody th{font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.rota tbody th .w{font-weight:400;color:var(--muted);margin-inline-start:4px}
+.rota tr.we{background:var(--tint)}
+.rota tr.past{opacity:.45}
+.rota tr.today th{box-shadow:inset 3px 0 0 var(--accent)}
+.rota mark{background:var(--mark);color:var(--mark-ink);border-radius:3px;padding:0 3px}
+.rota .sw{text-decoration:underline dotted;text-underline-offset:3px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:.8rem;color:var(--muted);align-items:center}
+
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.stat{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface)}
+.stat .n{font-family:var(--f-display);font-weight:800;font-size:1.6rem;font-variant-numeric:tabular-nums}
+.stat.good .n{color:var(--ok)}
+.stat.bad .n{color:var(--warn)}
+@media (max-width:480px){.stats{grid-template-columns:minmax(0,1fr)}}
+.loads{display:flex;flex-wrap:wrap;gap:6px}
+.load{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:4px;padding:2px 6px;font-size:.8rem}
+.load b{font-variant-numeric:tabular-nums}
+ul.rules{margin:0;padding-inline-start:1.2em;display:flex;flex-direction:column;gap:2px}
+ul.unav{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+ul.unav li{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.toast{position:fixed;inset-inline:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));margin-inline:auto;max-width:420px;background:var(--ink);color:var(--bg);border-radius:8px;padding:10px 14px;font-weight:500;text-align:center}
+.empty{color:var(--muted);font-size:.9rem}
+@media (prefers-reduced-motion:no-preference){.btn,.days button,.opt{transition:border-color .15s,background .15s}}
+
+body{margin:0}[hidden]{display:none!important}
+.hctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg button:disabled{opacity:.35;cursor:default}
+.actions.start{justify-content:flex-start}
+.narrow{max-width:420px}
+#code{font-family:var(--f-code);padding:6px 10px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);width:9rem}
+#watext{width:100%;height:8rem;font-family:var(--f-code);font-size:.8rem;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px}
+mark.lg{background:var(--mark);color:var(--mark-ink);padding:0 4px;border-radius:3px}
+.legend .sw{text-decoration:underline dotted;text-underline-offset:3px}
+#app.busy{cursor:progress}
+#app.busy .btn,#app.busy .days button{opacity:.7}
+.btn:disabled{opacity:.5;cursor:default}
+
+.lead{font-size:1.05rem;max-width:60ch}
+.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:560px){.choices{grid-template-columns:minmax(0,1fr)}}
+.choice{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:6px;background:var(--bg);text-align:start;min-width:0}
+.staffbtn{cursor:pointer;font:inherit;color:inherit}
+.staffbtn strong{font-family:var(--f-display);font-size:1.05rem}
+.staffbtn:hover{border-color:var(--accent)}
+.roompick.big select{font-size:1.05rem;padding:8px 12px;border-width:2px;border-color:var(--accent)}
+ol.how{margin:0;padding-inline-start:1.3em;display:flex;flex-direction:column;gap:6px}
+details.help{border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:8px 12px}
+details.help>summary{cursor:pointer;font-weight:600}
+details.help[open]>summary{margin-bottom:8px}
+details.help .tablewrap{margin-block:8px}
+pre.invite{white-space:pre-wrap;font-family:var(--f-body);font-size:.85rem;margin:0;background:var(--bg);border-radius:6px;padding:10px}
+.banner{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;background:var(--ok-bg);color:var(--ok);border-radius:8px;padding:10px 14px}
+.banner.turn{background:var(--mark);color:var(--mark-ink)}
+ol.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.step{display:grid;grid-template-columns:2.2rem minmax(0,1fr);gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.num{width:2.2rem;height:2.2rem;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;background:var(--accent);color:var(--accent-ink)}
+.step.done .num{background:var(--ok-bg);color:var(--ok)}
+.stepbody{display:flex;flex-direction:column;gap:10px;min-width:0}
+.steptop{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between}
+.bar{height:8px;border-radius:999px;background:var(--tint);overflow:hidden}
+.bar span{display:block;height:100%;background:var(--accent)}
+.okline{color:var(--ok);font-weight:600}
+.confirm{border:1px solid var(--warn);background:var(--warn-bg);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px}
+ul.swaplog{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.status{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+a.btn{text-decoration:none;color:inherit;display:inline-block}
+a.btn.primary{color:var(--accent-ink)}
+table.edit{border-collapse:collapse;width:100%;min-width:640px;font-size:.85rem}
+table.edit th{text-align:start;font-weight:600;color:var(--muted);padding:4px 6px;font-size:.78rem}
+table.edit td{padding:4px 6px;vertical-align:middle}
+table.edit input,table.edit select{width:100%;font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+table.edit input.short{width:6rem}
+.stat .small:last-child{margin-top:2px}
+
+.bulk{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.bulk textarea,#newfloor,#floorsel{font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.bulk textarea{font-family:var(--f-code);font-size:.85rem;width:100%}
+#newfloor{min-width:0;flex:1 1 12rem}
+ul.unav li .btn.ghost{margin-inline-start:auto}
+</style>
+</head>
+<body><script>
+(function(){
+const OCT=['A1.06/A1.07|C1.01/C1.02|B1.03|A1.02/A1.03 + B1.09|F1.03|G1.04|F1.06A', 'F1.05|C1.11|C1.07|B1.12 + E1.14|F1.05|G1.02D/G1.02E|F1.07A/F1.07B', 'A1.02/A1.03|E1.11|D1.03|A1.01A/A1.01B + E1.05|C1.10|F1.05|D1.01/1.02', 'B1.05/B1.06|F1.07A/F1.07B|F1.06A|B1.03 + A1.06/A1.07|C1.07|F1.03|G1.03', 'E1.14|B1.09|E1.11|A1.04/A1.05 + B1.12|C1.11|D1.01/1.02|G1.04', 'C1.01/C1.02|A1.04/A1.05|E1.03|A1.02/A1.03 + E1.01|C1.13A|F1.07A/F1.07B|G1.02D/G1.02E', 'C1.11|E1.05|F1.05|A1.04/A1.05 + E1.03|C1.10|D1.03|D1.03', 'D1.01/1.02|G1.03|B1.09|B1.07/B1.08b + A1.06/A1.07|C1.01/C1.02|F1.06A|F1.06A', 'F1.07A/F1.07B|B1.12|B1.05/B1.06|B1.03 + E1.14|C1.04|G1.04|G1.03', 'B1.07/B1.08b|A1.06/A1.07|A1.02/A1.03|A1.01A/A1.01B + E1.11|F1.03|D1.01/1.02|D1.03', 'A1.04/A1.05|C1.04|C1.01/C1.02|B1.07/B1.08b + E1.05|F1.05|G1.02D/G1.02E|G1.03', 'E1.05|C1.13A|C1.11|B1.03 + E1.01|C1.10|F1.06A|G1.04', 'G1.03|E1.14|E1.11|B1.05/B1.06 + E1.03|C1.07|D1.01/1.02|D1.01/1.02', 'B1.12|G1.02D/G1.02E|F1.07A/F1.07B|A1.04/A1.05 + E1.14|C1.11|G1.03|G1.03', 'C1.04|C1.10|B1.05/B1.06|A1.01A/A1.01B + B1.12|C1.13A|F1.03|F1.03', 'E1.01|B1.03|D1.01/1.02|A1.06/A1.07 + E1.11|C1.01/C1.02|F1.07A/F1.07B|F1.07A/F1.07B', 'G1.02D/G1.02E|F1.03|E1.05|B1.07/B1.08b + E1.01|C1.07|G1.04|D1.03', 'C1.10|G1.04|G1.03|B1.09 + A1.04/A1.05|C1.10|D1.01/1.02|D1.01/1.02', 'F1.03|A1.01A/A1.01B|B1.12|A1.02/A1.03 + E1.05|C1.01/C1.02|F1.05|G1.02D/G1.02E', 'G1.04|C1.07|C1.04|B1.09 + E1.03|C1.04|F1.06A|F1.06A', 'A1.01A/A1.01B|D1.03|C1.13A|C1.11 + A1.06/A1.07|C1.10|D1.01/1.02|G1.02D/G1.02E', 'C1.07|F1.06A|F1.03|E1.03 + E1.05|F1.05|F1.07A/F1.07B|F1.07A/F1.07B', 'B1.09|G1.03|G1.02D/G1.02E|A1.02/A1.03 + E1.11|C1.13A|D1.03|D1.03', 'E1.03|B1.05/B1.06|C1.10|B1.12 + E1.14|C1.07|F1.03|F1.06A', 'E1.11|E1.01|B1.09|A1.01A/A1.01B + E1.05|C1.11|G1.04|D1.03', 'B1.03|F1.05|G1.04|B1.05/B1.06 + A1.06/A1.07|F1.03|G1.02D/G1.02E|D1.01/1.02', 'D1.03|A1.02/A1.03|A1.01A/A1.01B|A1.04/A1.05 + B1.12|C1.13A|F1.05|F1.05', 'F1.05|B1.07/B1.08b|B1.03|A1.02/A1.03 + E1.01|C1.10|F1.06A|G1.02D/G1.02E', 'F1.06A|C1.01/C1.02|C1.07|A1.04/A1.05 + E1.03|C1.04|G1.03|G1.03', 'C1.13A|D1.01/1.02|E1.14|B1.07/B1.08b + A1.06/A1.07|F1.03|F1.07A/F1.07B|G1.04', 'E1.05|C1.13A|C1.11|B1.03 + E1.01|C1.10|F1.06A|F1.06A'];
+const G={'1':['A1.01A/A1.01B','A1.02/A1.03','A1.04/A1.05','A1.06/A1.07','B1.03','B1.05/B1.06','B1.07/B1.08b','B1.09','B1.12','E1.01','E1.03','E1.05','E1.11','E1.14'],'2':['C1.01/C1.02','C1.04','C1.07','C1.10','C1.11','C1.13A','F1.03','F1.05'],'3/4':['D1.01/1.02','D1.03','F1.06A','F1.07A/F1.07B','G1.02D/G1.02E','G1.03','G1.04']};
+const F1='1e verdieping';
+let floors=['1e verdieping','2e verdieping','3e verdieping','4e verdieping','5e verdieping','6e verdieping'];
+let rooms=[];for(const k in G)G[k].forEach(u=>rooms.push({u,g:k,f:F1}));
+const base=[['Badkamer','Bathroom','الحمّام',1,'alle'],['WC','Toilet','المرحاض',1,'alle'],['Gang/Speelruimte','Hallway/Playroom','الممر/غرفة اللعب',1,'alle'],['Keuken 1','Kitchen 1','المطبخ 1',2,'1'],['Keuken 2','Kitchen 2','المطبخ 2',1,'2'],['Keuken 3','Kitchen 3','المطبخ 3',1,'3/4'],['Keuken 4','Kitchen 4','المطبخ 4',1,'3/4']];
+let tasks=[];floors.forEach(f=>base.forEach(r=>tasks.push({nl:r[0],en:r[1],ar:r[2],n:r[3],g:r[4],f})));
+const sheets={};sheets[F1+' 2026-10']=[['Datum',...base.map(t=>t[0])]].concat(OCT.map((l,i)=>[i+1,...l.split('|')]));
+const unav={'E1.11':[4,5,6]};let responded=['E1.11'];let swaps=[],n=0;
+const today={key:'2026-10',day:7};
+const past=(k,d)=>k<today.key||(k===today.key&&d<today.day);
+const monthsOf=f=>Object.keys(sheets).filter(k=>k.startsWith(f+' ')).map(k=>k.slice(f.length+1)).sort();
+function readMonth(tab,ts){const v=sheets[tab];const cols=[];v[0].slice(1).forEach((h,i)=>{const t=ts.find(x=>x.nl.toLowerCase()===h.toLowerCase());let nn=t?t.n:1;v.slice(1).forEach(r=>{nn=Math.max(nn,String(r[i+1]||'').split('+').filter(x=>x.trim()).length);});cols.push({nl:h,en:t&&t.en||h,ar:t&&t.ar||h,n:nn,col:i+2});});
+ const days={};v.slice(1).forEach(r=>{const s=[];cols.forEach(c=>{const p=String(r[c.col-1]||'').split('+').map(x=>x.trim());for(let k=0;k<c.n;k++)s.push(p[k]||'');});days[r[0]]=s;});return {cols,days};}
+function writeSlot(tab,mon,d,s){let o=0;mon.cols.forEach(c=>{if(s>=o&&s<o+c.n){const row=sheets[tab].find(r=>r[0]===d);row[c.col-1]=mon.days[d].slice(o,o+c.n).filter(Boolean).join(' + ');}o+=c.n;});}
+const J=x=>JSON.parse(JSON.stringify(x));
+function st(f,k){if(!floors.includes(f))f=floors[0];const ms=monthsOf(f);if(!ms.includes(k))k=ms.includes(today.key)?today.key:(ms[0]||today.key);const ts=tasks.filter(t=>t.f===f);const tab=f+' '+k;
+ const m=ms.includes(k)?readMonth(tab,ts):{cols:ts.map(t=>({nl:t.nl,en:t.en,ar:t.ar,n:t.n})),days:{}};const sw=swaps.filter(x=>x.key===tab);
+ return J({location:'Demo',floors,floor:f,allRooms:rooms.map(r=>({u:r.u,f:r.f})),months:ms,key:k,rooms:rooms.filter(r=>r.f===f),tasks:ts,cols:m.cols,days:m.days,unav,sw:[].concat(...sw.filter(x=>x.status==='geruild').map(x=>[x.d+'-'+x.s,x.d2+'-'+x.s2])),
+ reqs:sw.filter(x=>x.status==='open'&&!past(k,x.d)),log:sw.filter(x=>x.status==='geruild'),responded,today,url:'https://script.google.com/macros/s/TEST/exec'});}
+const fail=c=>{throw new Error(c);};const auth=c=>{if(c!=='12345')fail('auth');};
+window.__sheets=sheets;window.__rooms=()=>rooms;
+const api={getState:(f,k)=>st(f,k),
+ setUnavail:(u,d)=>{unav[u]=d;if(!responded.includes(u))responded.push(u);return J(unav);},
+ requestSwap:(f,k,u,d,s)=>{const m=readMonth(f+' '+k,tasks.filter(t=>t.f===f));if(m.days[d][s]!==u)fail('stale');swaps.push({id:'x'+(++n),key:f+' '+k,unit:u,d,s,status:'open'});return st(f,k);},
+ withdrawSwap:(f,k,id)=>{swaps.find(x=>x.id===id).status='ingetrokken';return st(f,k);},
+ acceptSwap:(f,k,id,tk,d2,s2)=>{const r=swaps.find(x=>x.id===id);const m=readMonth(r.key,tasks.filter(t=>t.f===f));const D=m.days;if(D[r.d].includes(tk)||D[d2].includes(r.unit))fail('clash');D[r.d][r.s]=tk;D[d2][s2]=r.unit;writeSlot(r.key,m,r.d,r.s);writeSlot(r.key,m,d2,s2);Object.assign(r,{status:'geruild',taker:tk,d2,s2});return st(f,k);},
+ checkStaff:c=>c==='12345'?'https://docs.google.com/spreadsheets/':'',
+ publishMonth:(c,f,k,days)=>{auth(c);const ts=tasks.filter(t=>t.f===f);const w=ts.reduce((a,t)=>a+t.n,0);const rows=[['Datum',...ts.map(t=>t.nl)]];Object.keys(days).map(Number).sort((a,b)=>a-b).forEach(d=>{const r=days[d];if(r.length!==w)fail('stale');let o=0;rows.push([d,...ts.map(t=>{const v=r.slice(o,o+t.n).filter(Boolean).join(' + ');o+=t.n;return v;})]);});sheets[f+' '+k]=rows;return st(f,k);},
+ saveTasks:(c,f,k,list)=>{auth(c);if(!list.length||list.some(t=>!String(t.nl).trim()))fail('invalid');tasks=tasks.filter(t=>t.f!==f).concat(list.map(t=>({nl:t.nl.trim(),en:t.en,ar:t.ar,n:+t.n||1,g:t.g||'alle',f})));return st(f,k);},
+ saveRooms:(c,f,k,list)=>{auth(c);const mine=list.map(r=>({u:String(r.u).trim(),g:r.g,f}));const all=rooms.filter(r=>r.f!==f).concat(mine);const ns=all.map(r=>r.u);if(mine.some(r=>!r.u)||new Set(ns).size!==ns.length)fail('invalid');rooms=all;return st(f,k);},
+ addFloor:(c,name)=>{auth(c);if(floors.includes(name))fail('floor_exists');floors.push(name);tasks.filter(t=>t.f===floors[0]).forEach(t=>tasks.push({...t,f:name}));return st(name,'');},
+ removeFloor:(c,f)=>{auth(c);if(floors.length<2)fail('floor_last');if(rooms.some(r=>r.f===f))fail('floor_notempty');floors=floors.filter(x=>x!==f);tasks=tasks.filter(t=>t.f!==f);return st(floors[0],'');}};
+function runner(ok,bad){return new Proxy({},{get:(_,p)=>p==='withSuccessHandler'?f=>runner(f,bad):p==='withFailureHandler'?f=>runner(ok,f):(...a)=>setTimeout(()=>{try{ok&&ok(api[p](...a));}catch(e){bad&&bad(e);}},80)});}
+window.google={script:{get run(){return runner(null,null);}}};
+
+})();
+</script>
+
+<div class="wrap" id="app"></div>
+<div class="toast" id="toast" role="status" hidden></div>
+<script>
+(function(){
+const STR={
+nl:{floorsT:"Verdiepingen",floorPick:"Verdieping",newFloor:"bijv. 7e verdieping",addFloor:"Verdieping toevoegen",floorsHint:"Elke verdieping heeft eigen kamers, schoonmaakplekken en roosters. Een nieuwe verdieping krijgt dezelfde plekken als de eerste; pas ze daarna aan.",
+ noSchedule:"Er is nog geen rooster voor {floor}.",placesOn:"Schoonmaakplekken op {floor}",roomsOn:"Kamers op {floor}",
+ bulkT:"Meerdere kamers tegelijk",bulkHint:"Plak een lijst: één kamer per regel, met daarachter de keukengroep. Bijvoorbeeld: E2.11 1",bulkAdd:"Toevoegen aan de lijst",bulkDone:"{n} kamers toegevoegd. Klik op Opslaan.",
+ e_floor_exists:"Deze verdieping bestaat al.",e_floor_notempty:"Haal eerst alle kamers van deze verdieping weg.",e_floor_last:"Er moet minstens één verdieping blijven.",
+ remT:"Herinnering",remD:"Zet je beurten in de agenda van je telefoon. Je krijgt de avond ervoor om 19:00 een melding, en ruilen worden vanzelf bijgewerkt.",remSub:"Zet in mijn agenda",remFile:"Lukt het niet? Download het agendabestand",
+ todayTurn:"Vandaag ben jij aan de beurt: {task}.",tomorrowTurn:"Morgen ben jij aan de beurt: {task}.",
+ dailyT:"Herinnering in de groep (optioneel)",dailyD:"Bewoners kunnen hun beurten zelf in hun agenda zetten. Wil je ook in de WhatsApp-groep herinneren? Kopieer de beurten van morgen.",copyTomorrow:"Kopieer beurten van morgen",tomorrowHead:"Morgen aan de beurt",noTomorrow:"Morgen staat nog niet in een gepubliceerd rooster.",
+ setT:"Plekken en kamers",setD:"Voeg schoonmaakplekken of kamers toe of haal ze weg. Dit geldt voor het volgende rooster dat je maakt; gepubliceerde roosters blijven zoals ze zijn.",
+ placesT:"Schoonmaakplekken",placeName:"Naam",nameEn:"Engels",nameAr:"Arabisch",perTurn:"Kamers per beurt",who:"Wie",everyone:"Alle kamers",groupN:"Keukengroep {g}",remove:"Verwijder",addPlace:"Plek toevoegen",
+ roomsT:"Kamers",roomCode:"Kamer",group:"Keukengroep",groupHint:"De keukengroep bepaalt welke kamers welke keuken schoonmaken.",addRoom:"Kamer toevoegen",save:"Opslaan",savedOk:"Opgeslagen.",e_invalid:"Controleer de velden: elke plek en kamer heeft een naam nodig, en kamers mogen niet dubbel voorkomen.",
+ app:"Schoonmaakrooster",floor:"1e verdieping",
+ tabMine:"Mijn beurten",tabAll:"Hele rooster",tabStaff:"Medewerker",myRoom:"Mijn kamer",chooseRoom:"Kies je kamer",next:"Volgende beurt",noneLeft:"Geen beurten meer deze maand.",
+ lead:"Hier zie je wanneer jij aan de beurt bent, geef je door wanneer je niet kunt en ruil je een beurt met een andere kamer.",
+ how:"Zo werkt het",h1:"Kies je kamer.",h2:"Geef door op welke dagen je nooit kunt. Het volgende rooster houdt daar rekening mee.",
+ h3:"Kun je niet op je beurt? Vraag een ruil. Een andere kamer neemt je beurt over en jij neemt een beurt van die kamer.",h4:"Zie je een verzoek van een andere kamer? Help mee met ‘Ik ruil’.",
+ iLive:"Ik woon hier",iLiveSub:"Kies je kamer om te beginnen",iStaff:"Ik ben medewerker",iStaffSub:"Rooster maken en delen",
+ with:"samen met",myTurns:"Mijn beurten in {month}",cant:"Op deze dagen kan ik niet",cantHint:"Kies de weekdagen waarop je nooit kunt. Voor een beurt die al gepland is: vraag hieronder een ruil.",
+ everyDay:"Ik kan elke dag",sent:"Doorgegeven aan de medewerker.",notSent:"Nog niet doorgegeven.",
+ conflict:"Dag dat je niet kunt",ask:"Ruil aanvragen",asked:"Ruil gevraagd",withdraw:"Intrekken",swapped:"Geruild",past:"Geweest",
+ askedToast:"Je verzoek staat open. Andere kamers zien het nu in de app.",withdrawnToast:"Verzoek ingetrokken.",
+ openReqs:"Ruilverzoeken van andere kamers",reqsHint:"Deze kamers kunnen niet op hun beurt. Neem je hun beurt over, dan neemt die kamer een beurt van jou.",
+ noReqs:"Nu geen open verzoeken.",needs:"{room} zoekt een ruil voor",take:"Ik ruil",close:"Sluiten",
+ pick:"Welke beurt van jou neemt {room} over?",noValid:"Ruilen lukt niet: je hebt zelf al een beurt op {date}.",noValid2:"Ruilen lukt niet: {room} is op al jouw dagen al ingedeeld of kan dan niet.",
+ confirm:"Ruil bevestigen",done:"Geruild. Het rooster is bijgewerkt.",same:"zelfde taak",date:"Datum",legendMine:"jouw kamer",legendSw:"geruild",
+ nextReady:"Het rooster van {month} staat klaar.",view:"Bekijk",
+ code:"Medewerkerscode",unlock:"Openen",codeHint:"De code staat in de Google Sheet, op het tabblad Instellingen.",logout:"Afmelden",openSheet:"Open Google Sheet",
+ staffIntro:"Elke maand dezelfde vier stappen. De app doet het rekenwerk, jij houdt de controle.",doneChip:"Klaar",
+ s1t:"Nodig bewoners uit",s1d:"Eén keer doen: plaats deze uitnodiging in de WhatsApp-groep. Bewoners kiezen hun kamer en geven zelf hun dagen door.",copyInvite:"Kopieer uitnodiging",inviteCopied:"Uitnodiging gekopieerd. Plak hem in de WhatsApp-groep.",showText:"Bekijk de tekst",
+ s2t:"Verzamel de dagen van bewoners",s2d:"Geef bewoners tot ongeveer de 20e van de maand. Hieronder zie je wie al heeft gereageerd.",responded:"{n} van {total} kamers hebben gereageerd",notYet:"Nog niet gereageerd:",anyDay:"kan elke dag",
+ s3t:"Maak het rooster voor {month}",s3d:"Klik op de knop. Niet tevreden? Klik nog eens voor een andere verdeling.",
+ gen:"Maak rooster",regen:"Andere verdeling",conflicts:"Conflicten",confHint:"beurten op een dag dat een kamer niet kan; moet 0 zijn",range:"Beurten per kamer",rangeHint:"minste en meeste beurten per kamer",inrow:"Twee dagen op rij",inrowHint:"keer dat een kamer twee dagen achter elkaar moet",perRoom:"Verdeling per kamer",
+ rulesTitle:"Hoe maakt de app het rooster?",r1:"Geen beurt op een dag dat een kamer niet kan",r2:"Keukens per vleugel (zie tabblad Kamers); badkamer, wc en gang voor iedereen",r3:"Beurten zo gelijk mogelijk verdeeld",r4:"Liever geen twee dagen achter elkaar",
+ s4t:"Publiceer en deel",s4d:"Na publiceren zien bewoners het rooster in de app. Iets aanpassen? Doe dat in de Google Sheet, de app neemt het over.",
+ genFirst:"Maak eerst het rooster in stap 3.",publish:"Publiceer {month}",confirmPub:"Bewoners zien dit rooster direct. Doorgaan?",yesPub:"Ja, publiceer",cancel:"Annuleren",
+ published:"{month} is gepubliceerd. Kopieer het rooster en plak het in de WhatsApp-groep.",exists:"{month} is al gepubliceerd. Je kunt het tot de 1e opnieuw maken.",
+ copy:"Kopieer rooster voor WhatsApp",copied:"Gekopieerd. Plak het in de WhatsApp-groep.",copyFail:"Kopiëren lukte niet. Selecteer de tekst hieronder.",
+ swapsT:"Ruilen in {month}",swapsD:"Je hoeft niets te doen: geruilde beurten staan al in het rooster en in de Google Sheet.",noSwaps:"Nog geen ruilen.",openCount:"Open verzoeken: {n}",
+ waLink:"Ruilen of je dagen doorgeven:",loading:"Laden…",
+ e_stale:"Het rooster is net veranderd. Het is opnieuw geladen.",e_gone:"Dit verzoek is al geruild of ingetrokken.",e_clash:"Deze ruil past niet meer: een van jullie heeft al een beurt op die dag.",
+ e_past:"Deze dag is al voorbij.",e_auth:"Onjuiste medewerkerscode.",e_started:"Deze maand is al begonnen en kan niet vervangen worden.",e_generic:"Er ging iets mis. Probeer het opnieuw."},
+en:{floorsT:"Floors",floorPick:"Floor",newFloor:"e.g. 7th floor",addFloor:"Add floor",floorsHint:"Each floor has its own rooms, cleaning places and schedules. A new floor gets the same places as the first one; adjust them afterwards.",
+ noSchedule:"There's no schedule for {floor} yet.",placesOn:"Cleaning places on {floor}",roomsOn:"Rooms on {floor}",
+ bulkT:"Several rooms at once",bulkHint:"Paste a list: one room per line, followed by its kitchen group. For example: E2.11 1",bulkAdd:"Add to the list",bulkDone:"{n} rooms added. Press Save.",
+ e_floor_exists:"This floor already exists.",e_floor_notempty:"Remove all rooms from this floor first.",e_floor_last:"At least one floor must remain.",
+ remT:"Reminder",remD:"Put your turns in your phone's calendar. You'll get a reminder at 19:00 the evening before, and swaps update automatically.",remSub:"Add to my calendar",remFile:"Doesn't work? Download the calendar file",
+ todayTurn:"It's your turn today: {task}.",tomorrowTurn:"Your turn is tomorrow: {task}.",
+ dailyT:"Reminder in the group (optional)",dailyD:"Residents can add their turns to their own calendar. Want to remind the WhatsApp group as well? Copy tomorrow's turns.",copyTomorrow:"Copy tomorrow's turns",tomorrowHead:"Tomorrow's turns",noTomorrow:"Tomorrow isn't in a published schedule yet.",
+ setT:"Places and rooms",setD:"Add or remove cleaning places or rooms. This applies to the next schedule you build; published schedules stay as they are.",
+ placesT:"Cleaning places",placeName:"Name",nameEn:"English",nameAr:"Arabic",perTurn:"Rooms per turn",who:"Who",everyone:"All rooms",groupN:"Kitchen group {g}",remove:"Remove",addPlace:"Add place",
+ roomsT:"Rooms",roomCode:"Room",group:"Kitchen group",groupHint:"The kitchen group decides which rooms clean which kitchen.",addRoom:"Add room",save:"Save",savedOk:"Saved.",e_invalid:"Check the fields: every place and room needs a name, and rooms can't appear twice.",
+ app:"Cleaning schedule",floor:"1st floor",
+ tabMine:"My turns",tabAll:"Full schedule",tabStaff:"Staff",myRoom:"My room",chooseRoom:"Choose your room",next:"Next turn",noneLeft:"No more turns this month.",
+ lead:"See when it's your turn, tell staff when you can't clean, and swap a turn with another room.",
+ how:"How it works",h1:"Choose your room.",h2:"Mark the weekdays you can never clean. The next schedule takes them into account.",
+ h3:"Can't make your turn? Ask for a swap. Another room takes your turn and you take one of theirs.",h4:"See a request from another room? Help out with ‘I'll swap’.",
+ iLive:"I live here",iLiveSub:"Choose your room to start",iStaff:"I'm staff",iStaffSub:"Build and share the schedule",
+ with:"together with",myTurns:"My turns in {month}",cant:"Days I can't clean",cantHint:"Pick the weekdays you can never clean. For a turn that's already planned, ask for a swap below.",
+ everyDay:"I can clean any day",sent:"Sent to staff.",notSent:"Not reported yet.",
+ conflict:"Day you can't",ask:"Ask to swap",asked:"Swap requested",withdraw:"Withdraw",swapped:"Swapped",past:"Done",
+ askedToast:"Your request is open. Other rooms can see it in the app now.",withdrawnToast:"Request withdrawn.",
+ openReqs:"Swap requests from other rooms",reqsHint:"These rooms can't make their turn. If you take theirs, that room takes one of yours.",
+ noReqs:"No open requests right now.",needs:"{room} wants to swap",take:"I'll swap",close:"Close",
+ pick:"Which of your turns does {room} take?",noValid:"Can't swap: you already have a turn on {date}.",noValid2:"Can't swap: {room} is already busy or unavailable on all your days.",
+ confirm:"Confirm swap",done:"Swapped. The schedule is updated.",same:"same task",date:"Date",legendMine:"your room",legendSw:"swapped",
+ nextReady:"The {month} schedule is ready.",view:"View",
+ code:"Staff code",unlock:"Unlock",codeHint:"Demo code: 12345",logout:"Log out",openSheet:"Open Google Sheet",
+ staffIntro:"The same four steps every month. The app does the maths, you stay in control.",doneChip:"Done",
+ s1t:"Invite residents",s1d:"Do this once: post this invitation in the WhatsApp group. Residents choose their room and report their own days.",copyInvite:"Copy invitation",inviteCopied:"Invitation copied. Paste it into the WhatsApp group.",showText:"Show the text",
+ s2t:"Collect residents' days",s2d:"Give residents until about the 20th. Below you see who has responded.",responded:"{n} of {total} rooms have responded",notYet:"Not responded yet:",anyDay:"any day",
+ s3t:"Build the {month} schedule",s3d:"Press the button. Not happy? Press again for a different split.",
+ gen:"Build schedule",regen:"Different split",conflicts:"Conflicts",confHint:"turns on a day a room can't do; should be 0",range:"Turns per room",rangeHint:"fewest and most turns per room",inrow:"Two days in a row",inrowHint:"times a room has two days in a row",perRoom:"Split per room",
+ rulesTitle:"How does the app build the schedule?",r1:"No turns on a day a room can't do",r2:"Kitchens by wing (see tab Kamers); bathroom, toilet and hallway shared by all",r3:"Turns split as evenly as possible",r4:"Avoid two days in a row",
+ s4t:"Publish and share",s4d:"After publishing, residents see the schedule in the app. Need a change? Edit the Google Sheet and the app picks it up.",
+ genFirst:"Build the schedule in step 3 first.",publish:"Publish {month}",confirmPub:"Residents will see this schedule right away. Continue?",yesPub:"Yes, publish",cancel:"Cancel",
+ published:"{month} is published. Copy the schedule and paste it into the WhatsApp group.",exists:"{month} is already published. You can rebuild it until the 1st.",
+ copy:"Copy schedule for WhatsApp",copied:"Copied. Paste it into the WhatsApp group.",copyFail:"Copy didn't work. Select the text below.",
+ swapsT:"Swaps in {month}",swapsD:"Nothing to do: swapped turns are already in the schedule and the Google Sheet.",noSwaps:"No swaps yet.",openCount:"Open requests: {n}",
+ waLink:"Swap or report your days:",loading:"Loading…",
+ e_stale:"The schedule just changed. It has been reloaded.",e_gone:"This request was already swapped or withdrawn.",e_clash:"This swap no longer fits: one of you already has a turn that day.",
+ e_past:"That day has already passed.",e_auth:"Wrong staff code.",e_started:"This month has already started and can't be replaced.",e_generic:"Something went wrong. Please try again."},
+ar:{floorsT:"الطوابق",floorPick:"الطابق",newFloor:"مثلاً الطابق السابع",addFloor:"إضافة طابق",floorsHint:"لكل طابق غرفه وأماكن تنظيفه وجداوله. يحصل الطابق الجديد على نفس أماكن الطابق الأول، ثم يمكنك تعديلها.",
+ noSchedule:"لا يوجد جدول لـ{floor} بعد.",placesOn:"أماكن التنظيف في {floor}",roomsOn:"الغرف في {floor}",
+ bulkT:"عدة غرف دفعة واحدة",bulkHint:"الصق قائمة: غرفة في كل سطر، تليها مجموعة المطبخ. مثلاً: E2.11 1",bulkAdd:"إضافة إلى القائمة",bulkDone:"تمت إضافة {n} غرف. اضغط حفظ.",
+ e_floor_exists:"هذا الطابق موجود بالفعل.",e_floor_notempty:"احذف أولاً كل غرف هذا الطابق.",e_floor_last:"يجب أن يبقى طابق واحد على الأقل.",
+ remT:"تذكير",remD:"أضف أدوارك إلى تقويم هاتفك. ستصلك تذكرة الساعة 19:00 في المساء السابق، وتُحدَّث التبديلات تلقائياً.",remSub:"أضف إلى تقويمي",remFile:"لا يعمل؟ نزّل ملف التقويم",
+ todayTurn:"اليوم دورك: {task}.",tomorrowTurn:"دورك غداً: {task}.",
+ dailyT:"تذكير في المجموعة (اختياري)",dailyD:"يمكن للسكان إضافة أدوارهم إلى تقويمهم. تريد التذكير في مجموعة واتساب أيضاً؟ انسخ أدوار الغد.",copyTomorrow:"نسخ أدوار الغد",tomorrowHead:"أدوار الغد",noTomorrow:"الغد ليس في جدول منشور بعد.",
+ setT:"الأماكن والغرف",setD:"أضف أو احذف أماكن تنظيف أو غرفاً. ينطبق ذلك على الجدول القادم الذي تنشئه؛ الجداول المنشورة تبقى كما هي.",
+ placesT:"أماكن التنظيف",placeName:"الاسم",nameEn:"بالإنجليزية",nameAr:"بالعربية",perTurn:"غرف لكل دور",who:"من",everyone:"كل الغرف",groupN:"مجموعة المطبخ {g}",remove:"حذف",addPlace:"إضافة مكان",
+ roomsT:"الغرف",roomCode:"الغرفة",group:"مجموعة المطبخ",groupHint:"تحدد مجموعة المطبخ أي الغرف تنظف أي مطبخ.",addRoom:"إضافة غرفة",save:"حفظ",savedOk:"تم الحفظ.",e_invalid:"تحقق من الحقول: كل مكان وغرفة يحتاج إلى اسم، ولا يمكن تكرار الغرف.",
+ app:"جدول التنظيف",floor:"الطابق الأول",
+ tabMine:"مهامي",tabAll:"الجدول كاملاً",tabStaff:"الموظفون",myRoom:"غرفتي",chooseRoom:"اختر غرفتك",next:"المهمة القادمة",noneLeft:"لا مهام متبقية هذا الشهر.",
+ lead:"هنا ترى موعد دورك، وتُبلغ متى لا تستطيع التنظيف، وتبدّل دوراً مع غرفة أخرى.",
+ how:"كيف يعمل",h1:"اختر غرفتك.",h2:"حدّد أيام الأسبوع التي لا تستطيع التنظيف فيها أبداً. سيأخذها الجدول القادم بعين الاعتبار.",
+ h3:"لا تستطيع في دورك؟ اطلب تبديلاً. تتولى غرفة أخرى دورك وتتولى أنت أحد أدوارها.",h4:"ترى طلباً من غرفة أخرى؟ ساعد بالضغط على «سأبدّل».",
+ iLive:"أسكن هنا",iLiveSub:"اختر غرفتك للبدء",iStaff:"أنا موظف",iStaffSub:"إعداد الجدول ومشاركته",
+ with:"مع",myTurns:"مهامي في {month}",cant:"أيام لا أستطيع التنظيف فيها",cantHint:"اختر أيام الأسبوع التي لا تستطيع فيها أبداً. لمهمة مخطط لها بالفعل: اطلب تبديلاً أدناه.",
+ everyDay:"أستطيع في أي يوم",sent:"تم الإبلاغ للموظفين.",notSent:"لم يتم الإبلاغ بعد.",
+ conflict:"يوم لا تستطيع فيه",ask:"طلب تبديل",asked:"تم طلب التبديل",withdraw:"سحب الطلب",swapped:"تم التبديل",past:"انتهى",
+ askedToast:"طلبك مفتوح. يمكن للغرف الأخرى رؤيته الآن في التطبيق.",withdrawnToast:"تم سحب الطلب.",
+ openReqs:"طلبات التبديل من غرف أخرى",reqsHint:"هذه الغرف لا تستطيع في دورها. إذا توليت دورها، تتولى تلك الغرفة أحد أدوارك.",
+ noReqs:"لا توجد طلبات مفتوحة حالياً.",needs:"{room} يطلب تبديل",take:"سأبدّل",close:"إغلاق",
+ pick:"أي من مهامك يتولاها {room}؟",noValid:"لا يمكن التبديل: لديك مهمة في {date}.",noValid2:"لا يمكن التبديل: {room} مشغول أو غير متاح في كل أيامك.",
+ confirm:"تأكيد التبديل",done:"تم التبديل. تم تحديث الجدول.",same:"نفس المهمة",date:"التاريخ",legendMine:"غرفتك",legendSw:"تم تبديله",
+ nextReady:"جدول {month} جاهز.",view:"عرض",
+ code:"رمز الموظف",unlock:"فتح",codeHint:"تجد الرمز في Google Sheet، في تبويب Instellingen.",logout:"تسجيل الخروج",openSheet:"فتح Google Sheet",
+ staffIntro:"أربع خطوات نفسها كل شهر. التطبيق يقوم بالحساب وأنت تحتفظ بالتحكم.",doneChip:"تم",
+ s1t:"ادعُ السكان",s1d:"مرة واحدة فقط: انشر هذه الدعوة في مجموعة واتساب. يختار السكان غرفهم ويُبلغون عن أيامهم بأنفسهم.",copyInvite:"نسخ الدعوة",inviteCopied:"تم نسخ الدعوة. الصقها في مجموعة واتساب.",showText:"عرض النص",
+ s2t:"اجمع أيام السكان",s2d:"امنح السكان حتى يوم 20 تقريباً. أدناه ترى من استجاب.",responded:"استجابت {n} من {total} غرفة",notYet:"لم تستجب بعد:",anyDay:"أي يوم",
+ s3t:"أنشئ جدول {month}",s3d:"اضغط الزر. غير راضٍ؟ اضغط مرة أخرى لتوزيع مختلف.",
+ gen:"إنشاء الجدول",regen:"توزيع آخر",conflicts:"تعارضات",confHint:"مهام في يوم لا تستطيع فيه الغرفة؛ يجب أن يكون 0",range:"مهام لكل غرفة",rangeHint:"أقل وأكثر عدد مهام لكل غرفة",inrow:"يومان متتاليان",inrowHint:"مرات يكون لغرفة يومان متتاليان",perRoom:"التوزيع حسب الغرفة",
+ rulesTitle:"كيف يُنشئ التطبيق الجدول؟",r1:"لا مهام في يوم لا تستطيع فيه الغرفة",r2:"المطابخ حسب الجناح (انظر تبويب Kamers)، والحمام والمرحاض والممر للجميع",r3:"توزيع المهام بالتساوي قدر الإمكان",r4:"تجنّب يومين متتاليين",
+ s4t:"انشر وشارك",s4d:"بعد النشر يرى السكان الجدول في التطبيق. تريد تعديلاً؟ عدّل Google Sheet وسيأخذه التطبيق.",
+ genFirst:"أنشئ الجدول أولاً في الخطوة 3.",publish:"نشر {month}",confirmPub:"سيرى السكان هذا الجدول فوراً. متابعة؟",yesPub:"نعم، انشر",cancel:"إلغاء",
+ published:"تم نشر {month}. انسخ الجدول والصقه في مجموعة واتساب.",exists:"تم نشر {month} بالفعل. يمكنك إعادة إنشائه حتى يوم 1.",
+ copy:"نسخ الجدول لواتساب",copied:"تم النسخ. الصقه في مجموعة واتساب.",copyFail:"لم ينجح النسخ. حدّد النص أدناه.",
+ swapsT:"التبديلات في {month}",swapsD:"لا شيء عليك فعله: الأدوار المبدّلة موجودة بالفعل في الجدول وفي Google Sheet.",noSwaps:"لا تبديلات بعد.",openCount:"طلبات مفتوحة: {n}",
+ waLink:"للتبديل أو الإبلاغ عن أيامك:",loading:"جارٍ التحميل…",
+ e_stale:"تغيّر الجدول للتو. تمت إعادة تحميله.",e_gone:"تم تبديل هذا الطلب أو سحبه بالفعل.",e_clash:"هذا التبديل لم يعد مناسباً: لدى أحدكما مهمة في ذلك اليوم.",
+ e_past:"هذا اليوم قد مضى.",e_auth:"رمز الموظف غير صحيح.",e_started:"بدأ هذا الشهر ولا يمكن استبداله.",e_generic:"حدث خطأ ما. حاول مرة أخرى."}};
+const WD={nl:["ma","di","wo","do","vr","za","zo"],en:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+ ar:["الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت","الأحد"]};
+const MS={nl:["jan","feb","mrt","apr","mei","jun","jul","aug","sep","okt","nov","dec"],en:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+ ar:["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"]};
+const ML={nl:["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"],
+ en:["January","February","March","April","May","June","July","August","September","October","November","December"],ar:MS.ar};
+
+// D: data from the server. P: this viewer's preferences. U: transient UI state.
+let D=null;
+let P={lang:"en",room:"",view:"mine",key:"",floor:""};
+try{Object.assign(P,JSON.parse(localStorage.getItem("rooster1e-prefs"))||{});}catch(e){}
+const U={open:null,pickD:null,gen:null,seed:1,code:"",staff:false,sheetUrl:"",busy:false,confirmPub:false,justPublished:null,editTasks:null,editRooms:null,openSet:null};
+try{U.code=localStorage.getItem("rooster1e-staff")||"";}catch(e){}
+function savePrefs(){try{localStorage.setItem("rooster1e-prefs",JSON.stringify(P));}catch(e){}}
+
+const t=(k,v)=>{let s=(STR[P.lang]||STR.nl)[k]||STR.nl[k]||k;if(v)for(const x in v)s=s.split("{"+x+"}").join(v[x]);return s;};
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const code=u=>`<bdi class="code">${esc(u)}</bdi>`;
+const plate=u=>`<bdi class="plate" dir="ltr">${esc(u)}</bdi>`;
+const ym=key=>{const [y,m]=key.split("-").map(Number);return {y,m:m-1};};
+const keyOf=(y,m)=>y+"-"+String(m+1).padStart(2,"0");
+const dim=(y,m)=>new Date(y,m+1,0).getDate();
+const wdOf=(y,m,d)=>(new Date(y,m,d).getDay()+6)%7;
+const cur=()=>ym(D.key);
+const monthName=key=>{const {y,m}=ym(key);return ML[P.lang][m]+" "+y;};
+const fmt=(d,key=D.key)=>{const {y,m}=ym(key);return `${WD[P.lang][wdOf(y,m,d)]} ${d} ${MS[P.lang][m]}`;};
+const label=c=>c?(c[P.lang]||c.nl):"";
+// A month is a list of columns (cleaning places); each column holds n slots. Days are flat slot arrays.
+function lay(cols){const sc=[],st=[];let o=0;cols.forEach((c,i)=>{st.push(o);for(let k=0;k<c.n;k++)sc.push(i);o+=c.n;});return {sc,st};}
+let LAY={sc:[],st:[]};
+const taskName=s=>label(D.cols[LAY.sc[s]]);
+const sameTask=(a,b)=>LAY.sc[a]===LAY.sc[b];
+const isPast=d=>D.key<D.today.key||(D.key===D.today.key&&d<D.today.day);
+const row=d=>D.days[d]||[];
+const busy=(u,d)=>row(d).includes(u);
+const cantOn=(u,d)=>{const {y,m}=cur();return (D.unav[u]||[]).includes(wdOf(y,m,d));};
+const dayList=()=>Object.keys(D.days).map(Number).sort((a,b)=>a-b);
+function myDuties(u){const out=[];dayList().forEach(d=>row(d).forEach((x,s)=>{if(x===u)out.push({d,s});}));return out;}
+function partners(d,s){const i=LAY.sc[s],st=LAY.st[i],n=D.cols[i].n;return row(d).slice(st,st+n).filter((x,k)=>x&&st+k!==s);}
+const withPl=(d,s)=>{const p=partners(d,s);return p.length?` <span class="muted small">${esc(t("with"))}</span> ${p.map(plate).join(" ")}`:"";};
+const units=()=>D.rooms.map(r=>r.u);
+const chip=(cls,txt)=>`<span class="chip ${cls}">${esc(txt)}</span>`;
+
+let toastT;
+function toast(msg){const el=document.getElementById("toast");el.textContent=msg;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,4000);}
+function call(fn,...args){return new Promise((res,rej)=>google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args));}
+function errMsg(e){const m=String(e&&e.message||e);const k=["floor_exists","floor_notempty","floor_last","stale","gone","clash","past","auth","started","invalid"].find(c=>m.includes(c));return {key:k,text:t("e_"+(k||"generic"))};}
+async function act(fn,args,after){
+ if(U.busy)return false;U.busy=true;render();
+ try{const res=await call(fn,...args);if(after)after(res);else D=res;}
+ catch(e){const er=errMsg(e);toast(er.text);if(["stale","gone","clash"].includes(er.key)){try{D=await call("getState",D.floor,D.key);}catch(_){}}U.busy=false;render();return false;}
+ U.busy=false;render();return true;
+}
+
+function roomPicker(big){
+ const opt=u=>`<option ${u===P.room?"selected":""}>${esc(u)}</option>`;
+ const opts=D.floors.length>1?D.floors.map(f=>{const us=D.allRooms.filter(r=>r.f===f).map(r=>r.u);return us.length?`<optgroup label="${esc(f)}">${us.map(opt).join("")}</optgroup>`:"";}).join(""):D.allRooms.map(r=>opt(r.u)).join("");
+ return `<div class="roompick ${big?"big":""}"><label for="room" class="eyebrow">${esc(t("myRoom"))}</label><select id="room" dir="ltr">
+ ${P.room?"":`<option value="" selected disabled>${esc(t("chooseRoom"))}</option>`}${opts}</select></div>`;
+}
+const noSched=()=>D.months.length?"":`<div class="banner">${esc(t("noSchedule",{floor:D.floor}))}</div>`;
+function howList(){return `<ol class="how">${["h1","h2","h3","h4"].map(k=>`<li>${esc(t(k))}</li>`).join("")}</ol>`;}
+function header(){
+ const langs=[["nl","NL"],["en","EN"],["ar","عربي"]];
+ const i=D?D.months.indexOf(D.key):-1;
+ const nav=D?`<div class="seg" role="group" aria-label="Month"><button data-act="month" data-v="${i-1}" ${i>0?"":"disabled"} aria-label="‹">${P.lang==="ar"?"›":"‹"}</button><button aria-pressed="true" tabindex="-1">${esc(monthName(D.key))}</button><button data-act="month" data-v="${i+1}" ${i<D.months.length-1?"":"disabled"} aria-label="›">${P.lang==="ar"?"‹":"›"}</button></div>`:"";
+ return `<header><div><div class="eyebrow">${esc(D.location)} · ${esc(D.floor)}</div><h1>${esc(t("app"))}</h1></div>
+ <div class="hctl">${nav}<div class="seg" role="group" aria-label="Language">${langs.map(([k,l])=>`<button data-act="lang" data-v="${k}" aria-pressed="${P.lang===k}" ${k==="ar"?'lang="ar"':''}>${l}</button>`).join("")}</div></div></header>
+ <nav class="tabs" role="tablist">${[["mine","tabMine"],["all","tabAll"],["staff","tabStaff"]].map(([v,k])=>`<button role="tab" data-act="view" data-v="${v}" aria-selected="${P.view===v}">${esc(t(k))}</button>`).join("")}</nav>`;
+}
+
+function welcome(){
+ return `<section class="panel welcome"><p class="lead">${esc(t("lead"))}</p>
+ <div class="choices"><div class="choice">${roomPicker(true)}<p class="small muted">${esc(t("iLiveSub"))}</p></div>
+ <button class="choice staffbtn" data-act="view" data-v="staff"><strong>${esc(t("iStaff"))}</strong><span class="small muted">${esc(t("iStaffSub"))}</span></button></div></section>
+ <section class="panel"><h2>${esc(t("how"))}</h2>${howList()}</section>`;
+}
+
+function nextMonthBanner(){
+ const later=D.months.filter(k=>k>D.key&&k>D.today.key)[0];
+ return later?`<div class="banner"><span>${esc(t("nextReady",{month:monthName(later)}))}</span><button class="btn" data-act="gomonth" data-v="${later}">${esc(t("view"))}</button></div>`:"";
+}
+
+function turnBanner(me){
+ const T=D.today; if(D.key!==T.key)return "";
+ for(const [d,k] of [[T.day,"todayTurn"],[T.day+1,"tomorrowTurn"]]){const s=row(d).indexOf(me);if(s>=0)return `<div class="banner turn"><strong>${esc(t(k,{task:taskName(s)}))}</strong></div>`;}
+ return "";
+}
+function reminderPanel(){
+ if(!D.url)return "";
+ const https=`${D.url}?ics=${encodeURIComponent(P.room)}&lang=${P.lang}`, webcal=https.replace(/^https?:/,"webcal:");
+ return `<section class="panel"><h2>${esc(t("remT"))}</h2><p class="small muted">${esc(t("remD"))}</p>
+ <div class="actions start"><a class="btn primary" href="${esc(webcal)}" target="_top">${esc(t("remSub"))}</a></div>
+ <p class="small"><a href="${esc(https)}" target="_blank" rel="noopener">${esc(t("remFile"))}</a></p></section>`;
+}
+function viewMine(){
+ if(!P.room)return welcome();
+ const me=P.room, list=myDuties(me), upcoming=list.filter(x=>!isPast(x.d)), {y,m}=cur();
+ const nx=upcoming[0];
+ const nextHtml=nx?`<div class="next"><div class="cal"><div class="m">${esc(MS[P.lang][m])}</div><div class="d">${nx.d}</div><div class="w">${esc(WD[P.lang][wdOf(y,m,nx.d)])}</div></div>
+  <div><div class="eyebrow">${esc(t("next"))}</div><h2>${esc(taskName(nx.s))}</h2>${partners(nx.d,nx.s).length?`<p class="small">${withPl(nx.d,nx.s)}</p>`:""}</div></div>`:`<p class="empty">${esc(t("noneLeft"))}</p>`;
+ const rows=list.map(({d,s})=>{
+  const past=isPast(d), req=D.reqs.find(r=>r.unit===me&&r.d===d&&r.s===s), sw=D.sw.includes(d+"-"+s), bad=!past&&cantOn(me,d);
+  const chips=[past?chip("neutral",t("past")):"",bad&&!req?chip("warn",t("conflict")):"",req?chip("mark",t("asked")):"",sw?chip("ok",t("swapped")):""].join("");
+  const a=past?"":req?`<button class="btn ghost" data-act="withdraw" data-id="${esc(req.id)}">${esc(t("withdraw"))}</button>`:`<button class="btn ${bad?"primary":""}" data-act="ask" data-d="${d}" data-s="${s}">${esc(t("ask"))}</button>`;
+  return `<li class="${past?"past":""}"><div class="dlabel">${d} ${esc(MS[P.lang][m])}<span class="w">${esc(WD[P.lang][wdOf(y,m,d)])}</span></div>
+  <div><div>${esc(taskName(s))}${withPl(d,s)}</div>${chips?`<div class="chips">${chips}</div>`:""}</div><div class="actions">${a}</div></li>`;}).join("");
+ const myUn=D.unav[me]||[], didRespond=(D.responded||[]).includes(me);
+ const others=D.reqs.filter(r=>r.unit!==me);
+ const reqHtml=others.length?others.map(r=>{
+  const isOpen=U.open===r.id;
+  let body="";
+  if(isOpen){
+   if(busy(me,r.d))body=`<p class="small muted">${esc(t("noValid",{date:fmt(r.d)}))}</p>`;
+   else{const opts=list.filter(({d})=>!isPast(d)&&d!==r.d&&!busy(r.unit,d)&&!cantOn(r.unit,d))
+     .map(o=>({...o,same:sameTask(o.s,r.s)})).sort((a,b)=>(b.same-a.same)||(a.d-b.d));
+    body=opts.length?`<p class="small">${t("pick",{room:plate(r.unit)})}</p><div class="opts">${opts.map(o=>{const k=o.d+"-"+o.s;return `<button class="opt" data-act="pickd" data-v="${k}" aria-pressed="${U.pickD===k}"><span>${esc(fmt(o.d))} · ${esc(taskName(o.s))}</span>${o.same?chip("ok",t("same")):""}</button>`;}).join("")}</div>
+     <div class="actions start"><button class="btn primary" data-act="confirm" data-id="${esc(r.id)}" ${U.pickD&&!U.busy?"":"disabled"}>${esc(t("confirm"))}</button><button class="btn ghost" data-act="take" data-id="">${esc(t("close"))}</button></div>`
+     :`<p class="small muted">${t("noValid2",{room:plate(r.unit)})}</p>`;}
+  }
+  return `<div class="req ${isOpen?"open":""}"><div class="reqtop"><div><div class="small muted">${t("needs",{room:plate(r.unit)})}</div><strong>${esc(taskName(r.s))}</strong> · ${esc(fmt(r.d))}</div>
+  ${isOpen?"":`<button class="btn" data-act="take" data-id="${esc(r.id)}">${esc(t("take"))}</button>`}</div>${body}</div>`;}).join(""):`<p class="empty">${esc(t("noReqs"))}</p>`;
+ return `${roomPicker()}${noSched()}${turnBanner(me)}${nextMonthBanner()}
+ <details class="help"><summary>${esc(t("how"))}</summary>${howList()}</details>
+ <div class="grid2"><div class="col"><section class="panel">${nextHtml}</section>
+ <section class="panel"><h2>${esc(t("myTurns",{month:ML[P.lang][m]}))}</h2><ul class="duties">${rows||`<li><span></span><span class="empty">${esc(t("noneLeft"))}</span></li>`}</ul></section></div>
+ <div class="col"><section class="panel"><h2>${esc(t("cant"))}</h2><p class="small muted">${esc(t("cantHint"))}</p>
+  <div class="days" role="group">${WD[P.lang].map((w,i)=>`<button data-act="unav" data-v="${i}" aria-pressed="${myUn.includes(i)}">${esc(w)}</button>`).join("")}</div>
+  <div class="status">${didRespond?chip("ok",t("sent")):chip("neutral",t("notSent"))}${!myUn.length&&!didRespond?`<button class="btn" data-act="anyday">${esc(t("everyDay"))}</button>`:""}</div></section>
+ <section class="panel"><h2>${esc(t("openReqs"))}</h2><p class="small muted">${esc(t("reqsHint"))}</p>${reqHtml}</section>${reminderPanel()}</div></div>`;
+}
+
+function table(key,days,cols,opts={}){
+ const {y,m}=ym(key), me=opts.me, live=opts.live, L=lay(cols);
+ const one=(d,s)=>{const u=(days[d]||[])[s]||"";const sw=live&&D.sw.includes(d+"-"+s);const c=u&&u===me?`<mark>${code(u)}</mark>`:code(u);return sw?`<span class="sw">${c}</span>`:c;};
+ const cell=(d,i)=>{const out=[];for(let k=0;k<cols[i].n;k++)out.push(one(d,L.st[i]+k));return out.join(" + ");};
+ let h=`<div class="tablewrap"><table class="rota"><thead><tr><th>${esc(t("date"))}</th>${cols.map(c=>`<th>${esc(label(c))}</th>`).join("")}</tr></thead><tbody>`;
+ Object.keys(days).map(Number).sort((a,b)=>a-b).forEach(d=>{const w=wdOf(y,m,d);
+  const past=live&&isPast(d), today=live&&D.key===D.today.key&&d===D.today.day;
+  h+=`<tr class="${w>=5?"we":""} ${past?"past":""} ${today?"today":""}"><th>${d} ${esc(MS[P.lang][m])}<span class="w">${esc(WD[P.lang][w])}</span></th>${cols.map((c,i)=>`<td>${cell(d,i)}</td>`).join("")}</tr>`;});
+ return h+"</tbody></table></div>";
+}
+function viewAll(){
+ return `${roomPicker()}${noSched()}${nextMonthBanner()}<div class="legend"><span><mark class="lg">${code(P.room||"E1.00")}</mark> ${esc(t("legendMine"))}</span><span><span class="sw">${code("H1.00")}</span> ${esc(t("legendSw"))}</span></div>
+ ${table(D.key,D.days,D.cols,{me:P.room,live:true})}`;
+}
+
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let x=Math.imul(seed^seed>>>15,1|seed);x=x+Math.imul(x^x>>>7,61|x)^x;return((x^x>>>14)>>>0)/4294967296;};}
+// The month staff work on: the month after today, unless a later one is already published and still in the future.
+function targetKey(){const now=ym(D.today.key);return now.m===11?keyOf(now.y+1,0):keyOf(now.y,now.m+1);}
+function generate(){
+ const key=targetKey(), {y,m}=ym(key), n=dim(y,m), r=rng(U.seed*7919), all=units(), load={}, tl={}, last={};
+ const cols=D.tasks.map(x=>({nl:x.nl,en:x.en||x.nl,ar:x.ar||x.nl,n:x.n,g:x.g}));
+ const group=g=>D.rooms.filter(x=>x.g===g).map(x=>x.u);
+ const slotTask=[],pools=[];
+ cols.forEach((c,i)=>{const pool=(c.g&&c.g!=="alle")?group(c.g):all;for(let k=0;k<c.n;k++){slotTask.push(i);pools.push(pool);}});
+ all.forEach(u=>{load[u]=0;tl[u]=cols.map(()=>0);last[u]=-9;});
+ // Fill the narrowest pools (kitchens) first so shared places can balance the load.
+ const order=slotTask.map((_,s)=>s).sort((a,b)=>pools[a].length-pools[b].length);
+ const days={};
+ for(let d=1;d<=n;d++){const w=wdOf(y,m,d), rowv=slotTask.map(()=>""), used=new Set();
+  for(const s of order){
+   const cands=pools[s].filter(u=>!used.has(u)&&!(D.unav[u]||[]).includes(w));
+   let best=null,bs=1e9;
+   for(const u of cands){const sc=load[u]*10+tl[u][slotTask[s]]*4+(last[u]===d-1?25:0)+r()*3;if(sc<bs){bs=sc;best=u;}}
+   if(!best)best=pools[s].find(u=>!used.has(u))||"";
+   rowv[s]=best;if(best){used.add(best);load[best]++;tl[best][slotTask[s]]++;}
+  }
+  used.forEach(u=>last[u]=d);days[d]=rowv;}
+ let conf=0,inrow=0;
+ for(let d=1;d<=n;d++){days[d].forEach(u=>{if(u&&(D.unav[u]||[]).includes(wdOf(y,m,d)))conf++;});if(d>1)new Set(days[d].filter(Boolean)).forEach(u=>{if(days[d-1].includes(u))inrow++;});}
+ const vals=Object.values(load);
+ U.gen={key,days,cols,load,conf,inrow,min:vals.length?Math.min(...vals):0,max:vals.length?Math.max(...vals):0};
+}
+function waText(key,days,cols){
+ const L=[`*${t("app")} ${D.location}, ${D.floor}, ${monthName(key)}*`], Y=lay(cols);
+ if(D.url)L.push(`${t("waLink")} ${D.url}`);
+ L.push("");
+ Object.keys(days).map(Number).sort((a,b)=>a-b).forEach(d=>{L.push(`*${fmt(d,key)}*`);
+  cols.forEach((c,i)=>L.push(`${label(c)}: ${days[d].slice(Y.st[i],Y.st[i]+c.n).filter(Boolean).join(" + ")}`));L.push("");});
+ return L.join("\n");
+}
+function tomorrowText(){
+ const T=D.today; if(D.key!==T.key||!D.days[T.day+1])return "";
+ const d=T.day+1, L=[`*${t("tomorrowHead")}: ${fmt(d)}*`];
+ D.cols.forEach((c,i)=>L.push(`${label(c)}: ${row(d).slice(LAY.st[i],LAY.st[i]+c.n).filter(Boolean).join(" + ")}`));
+ if(D.url)L.push("",`${t("waLink")} ${D.url}`);
+ return L.join("\n");
+}
+// The invitation is always in all three languages: the WhatsApp group is mixed.
+function inviteText(){
+ const url=D.url||"[link]";
+ return [`🧹 *Schoonmaakrooster ${D.location}*`,"",
+  "🇳🇱 Bekijk je beurten, geef door op welke dagen je niet kunt schoonmaken en ruil zelf een beurt met een andere kamer. Geef je dagen door vóór de 20e.",url,"",
+  "🇬🇧 See your turns, tell us which days you can't clean, and swap a turn with another room yourself. Please report your days before the 20th.",url,"",
+  "العربية: شاهد أدوارك، وأبلغنا بالأيام التي لا تستطيع فيها التنظيف، وبدّل دورك مع غرفة أخرى بنفسك. يرجى الإبلاغ عن أيامك قبل يوم 20.",url].join("\n");
+}
+function step(n,title,desc,body,done){
+ return `<li class="step ${done?"done":""}"><div class="num" aria-hidden="true">${done?"✓":n}</div><div class="stepbody"><div class="steptop"><h3>${esc(title)}</h3>${done?chip("ok",t("doneChip")):""}</div>
+ <p class="small muted">${esc(desc)}</p>${body}</div></li>`;
+}
+function settingsPanel(){
+ // Drafts belong to one floor; start fresh when the floor shown changes.
+ if(U.editFloor!==D.floor){U.editTasks=null;U.editRooms=null;U.editFloor=D.floor;}
+ if(!U.editTasks)U.editTasks=D.tasks.map(x=>({...x}));
+ if(!U.editRooms)U.editRooms=D.rooms.map(x=>({...x}));
+ const groups=Array.from(new Set(U.editRooms.map(r=>r.g).filter(Boolean))).sort();
+ const tg=(i,g)=>`<select data-et="${i}:g"><option value="alle" ${g==="alle"?"selected":""}>${esc(t("everyone"))}</option>${groups.map(x=>`<option value="${esc(x)}" ${g===x?"selected":""}>${esc(t("groupN",{g:x}))}</option>`).join("")}</select>`;
+ const places=`<div class="tablewrap"><table class="edit"><thead><tr><th>${esc(t("placeName"))}</th><th>${esc(t("nameEn"))}</th><th>${esc(t("nameAr"))}</th><th>${esc(t("perTurn"))}</th><th>${esc(t("who"))}</th><th></th></tr></thead><tbody>
+  ${U.editTasks.map((x,i)=>`<tr><td><input data-et="${i}:nl" value="${esc(x.nl)}" aria-label="${esc(t("placeName"))}"></td><td><input data-et="${i}:en" value="${esc(x.en)}" aria-label="${esc(t("nameEn"))}"></td><td><input data-et="${i}:ar" value="${esc(x.ar)}" dir="rtl" aria-label="${esc(t("nameAr"))}"></td>
+  <td><select data-et="${i}:n">${[1,2,3,4].map(n=>`<option ${+x.n===n?"selected":""}>${n}</option>`).join("")}</select></td><td>${tg(i,x.g)}</td><td><button class="btn ghost" data-act="deltask" data-i="${i}">${esc(t("remove"))}</button></td></tr>`).join("")}
+  </tbody></table></div><div class="actions start"><button class="btn" data-act="addtask">${esc(t("addPlace"))}</button><button class="btn primary" data-act="savetasks" ${U.busy?"disabled":""}>${esc(t("save"))}</button></div>`;
+ const rooms=`<p class="small muted">${esc(t("groupHint"))}</p><datalist id="groups">${groups.map(g=>`<option value="${esc(g)}">`).join("")}</datalist>
+  <div class="tablewrap"><table class="edit"><thead><tr><th>${esc(t("roomCode"))}</th><th>${esc(t("group"))}</th><th></th></tr></thead><tbody>
+  ${U.editRooms.map((x,i)=>`<tr><td><input data-er="${i}:u" value="${esc(x.u)}" dir="ltr" aria-label="${esc(t("roomCode"))}"></td><td><input data-er="${i}:g" value="${esc(x.g)}" list="groups" dir="ltr" class="short" aria-label="${esc(t("group"))}"></td><td><button class="btn ghost" data-act="delroom" data-i="${i}">${esc(t("remove"))}</button></td></tr>`).join("")}
+  </tbody></table></div><div class="actions start"><button class="btn" data-act="addroom">${esc(t("addRoom"))}</button><button class="btn primary" data-act="saverooms" ${U.busy?"disabled":""}>${esc(t("save"))}</button></div>
+  <div class="bulk"><label for="bulk" class="small"><strong>${esc(t("bulkT"))}</strong><br><span class="muted">${esc(t("bulkHint"))}</span></label><textarea id="bulk" dir="ltr" rows="4"></textarea><div class="actions start"><button class="btn" data-act="bulkadd">${esc(t("bulkAdd"))}</button></div></div>`;
+ const floors=`<p class="small muted">${esc(t("floorsHint"))}</p><ul class="unav">${D.floors.map(f=>`<li><strong>${esc(f)}</strong> <span class="small muted">${D.allRooms.filter(r=>r.f===f).length} ${esc(t("roomsT").toLowerCase())}</span>${D.floors.length>1?`<button class="btn ghost" data-act="delfloor" data-v="${esc(f)}">${esc(t("remove"))}</button>`:""}</li>`).join("")}</ul>
+  <div class="roompick"><input id="newfloor" placeholder="${esc(t("newFloor"))}" aria-label="${esc(t("addFloor"))}"><button class="btn primary" data-act="addfloor" ${U.busy?"disabled":""}>${esc(t("addFloor"))}</button></div>`;
+ return `<section class="panel"><h2>${esc(t("setT"))}</h2><p class="small muted">${esc(t("setD"))}</p>
+ <details class="help" ${U.openSet==="floors"?"open":""} data-set="floors"><summary>${esc(t("floorsT"))} (${D.floors.length})</summary>${floors}</details>
+ <details class="help" ${U.openSet==="places"?"open":""} data-set="places"><summary>${esc(t("placesOn",{floor:D.floor}))} (${U.editTasks.length})</summary>${places}</details>
+ <details class="help" ${U.openSet==="rooms"?"open":""} data-set="rooms"><summary>${esc(t("roomsOn",{floor:D.floor}))} (${U.editRooms.length})</summary>${rooms}</details></section>`;
+}
+function viewStaff(){
+ if(!U.staff)return `<section class="panel narrow"><h2>${esc(t("tabStaff"))}</h2><p class="small muted">${esc(t("staffIntro"))}</p>
+  <form id="login" class="roompick"><label for="code" class="eyebrow">${esc(t("code"))}</label>
+  <input id="code" inputmode="numeric" autocomplete="off" value="${esc(U.code)}"><button class="btn primary" type="submit" ${U.busy?"disabled":""}>${esc(t("unlock"))}</button></form>
+  <p class="small muted">${esc(t("codeHint"))}</p></section>`;
+ const key=targetKey(), mon=monthName(key), all=units(), resp=(D.responded||[]).filter(u=>all.includes(u)), notResp=all.filter(u=>!resp.includes(u));
+ const published=D.months.includes(key), g=U.gen&&U.gen.key===key?U.gen:null;
+
+ const s1=`<div class="actions start"><button class="btn primary" data-act="invite">${esc(t("copyInvite"))}</button></div>
+  <details class="help"><summary>${esc(t("showText"))}</summary><pre class="invite" dir="auto">${esc(inviteText())}</pre></details>`;
+ const pct=all.length?Math.round(resp.length/all.length*100):0;
+ const s2=`<p><strong>${esc(t("responded",{n:resp.length,total:all.length}))}</strong></p><div class="bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pct}%"></span></div>
+  ${resp.length?`<ul class="unav">${resp.slice().sort().map(u=>{const ds=D.unav[u]||[];return `<li>${plate(u)} ${ds.length?ds.slice().sort().map(i=>chip("warn",WD[P.lang][i])).join(""):chip("ok",t("anyDay"))}</li>`;}).join("")}</ul>`:""}
+  ${notResp.length?`<p class="small muted">${esc(t("notYet"))}</p><div class="loads">${notResp.map(plate).join(" ")}</div>`:""}`;
+ const s3=`<div class="actions start"><button class="btn ${g?"":"primary"}" data-act="gen">${esc(g?t("regen"):t("gen"))}</button></div>
+  ${g?`<div class="stats"><div class="stat ${g.conf?"bad":"good"}"><div class="small muted">${esc(t("conflicts"))}</div><div class="n">${g.conf}</div><div class="small muted">${esc(t("confHint"))}</div></div>
+  <div class="stat"><div class="small muted">${esc(t("range"))}</div><div class="n" dir="ltr">${g.min}–${g.max}</div><div class="small muted">${esc(t("rangeHint"))}</div></div>
+  <div class="stat"><div class="small muted">${esc(t("inrow"))}</div><div class="n">${g.inrow}</div><div class="small muted">${esc(t("inrowHint"))}</div></div></div>
+  ${table(key,g.days,g.cols,{})}
+  <details class="help"><summary>${esc(t("perRoom"))}</summary><div class="loads">${all.map(u=>`<span class="load">${code(u)} <b>${g.load[u]}</b></span>`).join("")}</div></details>`:""}
+  <details class="help"><summary>${esc(t("rulesTitle"))}</summary><ul class="rules small">${["r1","r2","r3","r4"].map(k=>`<li>${esc(t(k))}</li>`).join("")}</ul></details>`;
+ let s4;
+ if(U.justPublished===key)s4=`<p class="okline">${esc(t("published",{month:mon}))}</p><div class="actions start"><button class="btn primary" data-act="copypub">${esc(t("copy"))}</button></div><textarea id="watext" hidden readonly></textarea>`;
+ else if(!g)s4=published?`<p class="small">${chip("ok",t("exists",{month:mon}))}</p><div class="actions start"><button class="btn" data-act="copypub">${esc(t("copy"))}</button></div><textarea id="watext" hidden readonly></textarea>`:`<p class="empty">${esc(t("genFirst"))}</p>`;
+ else if(U.confirmPub)s4=`<div class="confirm"><p><strong>${esc(t("confirmPub"))}</strong></p><div class="actions start"><button class="btn primary" data-act="publish" ${U.busy?"disabled":""}>${esc(t("yesPub"))}</button><button class="btn ghost" data-act="cancelpub">${esc(t("cancel"))}</button></div></div>`;
+ else s4=`${published?`<p class="small">${chip("warn",t("exists",{month:mon}))}</p>`:""}<div class="actions start"><button class="btn primary" data-act="askpub">${esc(t("publish",{month:mon}))}</button></div>`;
+
+ const log=D.log||[];
+ const logHtml=log.length?`<ul class="swaplog">${log.map(x=>`<li>${plate(x.unit)} ⇄ ${plate(x.taker)} <span class="small muted">${esc(taskName(x.s))} ${esc(fmt(x.d))} ↔ ${esc(taskName(x.s2))} ${esc(fmt(x.d2))}</span></li>`).join("")}</ul>`:`<p class="empty">${esc(t("noSwaps"))}</p>`;
+
+ return `<section class="panel"><div class="roompick"><label for="floorsel" class="eyebrow">${esc(t("floorPick"))}</label><select id="floorsel">${D.floors.map(f=>`<option ${f===D.floor?"selected":""}>${esc(f)}</option>`).join("")}</select></div><div class="steptop"><p>${esc(t("staffIntro"))}</p><div class="actions">${U.sheetUrl?`<a class="btn" href="${esc(U.sheetUrl)}" target="_blank" rel="noopener">${esc(t("openSheet"))}</a>`:""}<button class="btn ghost" data-act="logout">${esc(t("logout"))}</button></div></div></section>
+ <ol class="steps">
+  ${step(1,t("s1t"),t("s1d"),s1,false)}
+  ${step(2,t("s2t"),t("s2d"),s2,!notResp.length)}
+  ${step(3,t("s3t",{month:mon}),t("s3d"),s3,!!g||published)}
+  ${step(4,t("s4t"),t("s4d"),s4,published)}
+ </ol>
+ <section class="panel"><h2>${esc(t("dailyT"))}</h2><p class="small muted">${esc(t("dailyD"))}</p><div class="actions start"><button class="btn" data-act="copytomorrow">${esc(t("copyTomorrow"))}</button></div><textarea id="watext2" hidden readonly></textarea></section>
+ ${settingsPanel()}
+ <section class="panel"><h2>${esc(t("swapsT",{month:monthName(D.key)}))}</h2><p class="small muted">${esc(t("swapsD"))}</p>${logHtml}${D.reqs.length?`<p class="small">${chip("mark",t("openCount",{n:D.reqs.length}))}</p>`:""}</section>`;
+}
+
+function render(){
+ document.documentElement.lang=P.lang;document.documentElement.dir=P.lang==="ar"?"rtl":"ltr";
+ const app=document.getElementById("app");
+ if(!D){app.innerHTML=`<header><div><div class="eyebrow">Demo</div><h1>${esc(t("app"))}</h1></div></header><p class="empty">${esc(t("loading"))}</p>`;return;}
+ LAY=lay(D.cols);
+ if(P.room&&!D.allRooms.some(r=>r.u===P.room))P.room="";
+ app.innerHTML=header()+(P.view==="mine"?viewMine():P.view==="all"?viewAll():viewStaff());
+ app.classList.toggle("busy",U.busy);
+ savePrefs();
+}
+function copyText(txt,okMsg,taId){
+ const ta=document.getElementById(taId||"watext");
+ const fallback=()=>{if(ta){ta.value=txt;ta.hidden=false;ta.focus();ta.select();}toast(t("copyFail"));};
+ try{navigator.clipboard.writeText(txt).then(()=>toast(okMsg||t("copied")),fallback);}catch(err){fallback();}
+}
+async function unlock(codeVal,silent){
+ let url="";
+ try{url=await call("checkStaff",codeVal);}catch(e){}
+ if(url){U.staff=true;U.code=codeVal;U.sheetUrl=url;try{localStorage.setItem("rooster1e-staff",codeVal);}catch(e){}}
+ else if(!silent)toast(t("e_auth"));
+ render();
+}
+
+// Settings inputs update the draft in place, without re-rendering, so typing keeps focus.
+function editField(e){const el=e.target;const k=el.dataset.et||el.dataset.er;if(!k)return;const [i,f]=k.split(":");const list=el.dataset.et?U.editTasks:U.editRooms;if(list&&list[+i])list[+i][f]=f==="n"?+el.value:el.value;}
+document.addEventListener("input",editField);
+document.addEventListener("toggle",e=>{const d=e.target;if(d.dataset&&d.dataset.set)U.openSet=d.open?d.dataset.set:(U.openSet===d.dataset.set?null:U.openSet);},true);
+async function switchFloor(f){P.floor=f;P.key="";U.open=null;U.pickD=null;U.gen=null;U.editTasks=null;U.editRooms=null;U.confirmPub=false;U.justPublished=null;await act("getState",[f,""]);P.key=D.key;}
+document.addEventListener("change",async e=>{editField(e);
+ if(e.target.id==="room"){P.room=e.target.value;P.view="mine";U.open=null;U.pickD=null;const r=D.allRooms.find(x=>x.u===P.room);if(r&&r.f!==D.floor)await switchFloor(r.f);else render();}
+ if(e.target.id==="floorsel")await switchFloor(e.target.value);});
+document.addEventListener("submit",async e=>{if(e.target.id!=="login")return;e.preventDefault();
+ const v=document.getElementById("code").value.trim();U.busy=true;render();await unlock(v,false);U.busy=false;render();});
+document.addEventListener("click",async e=>{
+ const b=e.target.closest("[data-act]");if(!b||b.disabled)return;const a=b.dataset.act,v=b.dataset.v;
+ if(a==="lang"){P.lang=v;render();}
+ else if(a==="view"){P.view=v;U.open=null;render();}
+ else if(a==="month"){const k=D.months[+v];if(!k)return;P.key=k;U.open=null;await act("getState",[D.floor,k]);}
+ else if(a==="gomonth"){P.key=v;U.open=null;await act("getState",[D.floor,v]);}
+ else if(a==="unav"||a==="anyday"){const arr=D.unav[P.room]||[];let next=[];
+   if(a==="unav"){const i=+v;next=arr.includes(i)?arr.filter(x=>x!==i):[...arr,i];}
+   D.unav[P.room]=next;render();
+   await act("setUnavail",[P.room,next],res=>{D.unav=res;D.responded=Array.from(new Set([...(D.responded||[]),P.room]));});}
+ else if(a==="ask"){if(await act("requestSwap",[D.floor,D.key,P.room,+b.dataset.d,+b.dataset.s]))toast(t("askedToast"));}
+ else if(a==="withdraw"){if(await act("withdrawSwap",[D.floor,D.key,b.dataset.id,P.room]))toast(t("withdrawnToast"));}
+ else if(a==="take"){U.open=b.dataset.id||null;U.pickD=null;render();}
+ else if(a==="pickd"){U.pickD=v;render();}
+ else if(a==="confirm"){const [d2,s2]=U.pickD.split("-").map(Number);
+   const ok=await act("acceptSwap",[D.floor,D.key,b.dataset.id,P.room,d2,s2]);if(ok){U.open=null;U.pickD=null;render();toast(t("done"));}}
+ else if(a==="gen"){if(U.gen)U.seed++;generate();U.confirmPub=false;U.justPublished=null;render();}
+ else if(a==="askpub"){U.confirmPub=true;render();}
+ else if(a==="cancelpub"){U.confirmPub=false;render();}
+ else if(a==="publish"){const g=U.gen;const ok=await act("publishMonth",[U.code,D.floor,g.key,g.days]);
+   if(ok){U.confirmPub=false;U.justPublished=g.key;P.key=g.key;render();}}
+ else if(a==="copypub"){const key=targetKey();
+   if(D.key===key)copyText(waText(key,D.days,D.cols));
+   else if(U.gen&&U.gen.key===key)copyText(waText(key,U.gen.days,U.gen.cols));
+   else{P.key=key;if(await act("getState",[D.floor,key]))copyText(waText(key,D.days,D.cols));}}
+ else if(a==="invite")copyText(inviteText(),t("inviteCopied"));
+ else if(a==="copytomorrow"){const txt=tomorrowText();if(!txt)toast(t("noTomorrow"));else copyText(txt,t("copied"),"watext2");}
+ else if(a==="addtask"){U.editTasks.push({nl:"",en:"",ar:"",n:1,g:"alle"});U.openSet="places";render();}
+ else if(a==="deltask"){U.editTasks.splice(+b.dataset.i,1);U.openSet="places";render();}
+ else if(a==="bulkadd"){const lines=(document.getElementById("bulk").value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);let n=0;
+   lines.forEach(l=>{const p=l.split(/[\s;,\t]+/);const u=p[0];if(!u||U.editRooms.some(r=>r.u===u))return;U.editRooms.push({u,g:p[1]||""});n++;});U.openSet="rooms";render();toast(t("bulkDone",{n}));}
+ else if(a==="addfloor"){const name=(document.getElementById("newfloor").value||"").trim();if(!name)return;U.openSet="floors";
+   if(await act("addFloor",[U.code,name])){P.floor=D.floor;P.key=D.key;U.editTasks=null;U.editRooms=null;U.gen=null;toast(t("savedOk"));render();}}
+ else if(a==="delfloor"){U.openSet="floors";if(await act("removeFloor",[U.code,v])){P.floor=D.floor;P.key=D.key;U.editTasks=null;U.editRooms=null;U.gen=null;toast(t("savedOk"));render();}}
+ else if(a==="addroom"){U.editRooms.push({u:"",g:""});U.openSet="rooms";render();}
+ else if(a==="delroom"){U.editRooms.splice(+b.dataset.i,1);U.openSet="rooms";render();}
+ else if(a==="savetasks"){U.openSet="places";if(await act("saveTasks",[U.code,D.floor,D.key,U.editTasks])){U.editTasks=null;U.gen=null;toast(t("savedOk"));render();}}
+ else if(a==="saverooms"){U.openSet="rooms";if(await act("saveRooms",[U.code,D.floor,D.key,U.editRooms])){U.editRooms=null;U.gen=null;toast(t("savedOk"));render();}}
+ else if(a==="logout"){U.staff=false;U.code="";U.sheetUrl="";try{localStorage.removeItem("rooster1e-staff");}catch(_){}render();}
+});
+
+render();
+call("getState",P.floor||"",P.key||"").then(async res=>{D=res;
+  // A resident's room decides their floor.
+  const mine=P.room&&D.allRooms.find(r=>r.u===P.room);
+  if(mine&&mine.f!==D.floor){try{D=await call("getState",mine.f,"");}catch(_){}}
+  P.floor=D.floor;P.key=D.key;render();if(U.code)unlock(U.code,true);})
+ .catch(e=>{document.getElementById("app").insertAdjacentHTML("beforeend",`<p class="empty">${esc(errMsg(e).text)}</p>`);});
+})();
+
+</script>
+</body>
+</html>

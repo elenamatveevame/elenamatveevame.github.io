@@ -1,0 +1,2143 @@
+<title>AI Companion · Home Screen Concepts · Elena Matveeva</title><style>header.intro,#h-directions,#h-directions + p{display:none !important}</style><style>
+h1,h2,.direction h3,.state-body h3{font-weight:400 !important;letter-spacing:-.02em !important;}
+h1 em,h2 em{font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-weight:400;letter-spacing:0;}
+.direction h3 .tag{color:var(--muted) !important;border-color:var(--line) !important;}
+.panel{border-radius:10px !important;}
+.decisions h3{font-weight:500 !important;}
+.byline li:first-child{font-weight:500 !important;}
+.screen-a .scene{height:calc(100% + 30px) !important;}
+[data-phone-theme="dark"] .screen-b .scene{filter:blur(3px) brightness(.42) saturate(.8) !important;}
+[data-phone-theme="dark"] .scene{filter:brightness(.42) saturate(.8);}
+[data-phone-theme="dark"] .screen{background:#2B2420 !important;}
+</style>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@1&display=swap">
+<style>
+/* Layout: one centered studio board (1120px max). Two live phones are the hero; states, glass and handoff notes follow in quiet panels. */
+:root {
+  --bg: #FFFFFF;
+  --panel: #F7F7F5;
+  --ink: #141413;
+  --muted: #6B6B6B;
+  --line: #E4E4E3;
+  --accent: #2F5FDE;
+  --accent-ink: #FFFFFF;
+
+  /* Companion tones are iOS system colors (light values); the phones swap in the dark values themselves */
+  --tone-idle: #FF9500;
+  --tone-listen: #30B0C7;
+  --tone-think: #AF52DE;
+  --tone-speak: #FF2D55;
+
+  /* Phone world: fixed warm scene and device frame, does not follow the page theme */
+  --bezel-a: #2A2730;
+  --bezel-b: #121116;
+  --stage-top: #F7ECE2;
+  --stage-bottom: #EDD1BC;
+  --desk: #DDB598;
+
+  --f-display: "Geist", system-ui, sans-serif;
+  --f-body: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --f-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, sans-serif;
+
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1218;
+    --panel: #161A22;
+    --ink: #E6E9F0;
+    --muted: #9AA2B4;
+    --line: #272D39;
+    --accent: #ABA5FF;
+    --accent-ink: #15132A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1218;
+  --panel: #161A22;
+  --ink: #E6E9F0;
+  --muted: #9AA2B4;
+  --line: #272D39;
+  --accent: #ABA5FF;
+  --accent-ink: #15132A;
+  color-scheme: dark;
+}
+
+@property --tone { syntax: "<color>"; inherits: true; initial-value: #FFB86B; }
+@property --p { syntax: "<number>"; inherits: true; initial-value: 0; }
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.55 var(--f-body);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); }
+button { font: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.board {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding-block: 56px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 104px;
+}
+
+/* ---------- Header ---------- */
+.intro { display: flex; flex-direction: column; gap: 18px; max-width: 780px; }
+.eyebrow {
+  font: 500 12px/1.2 var(--f-mono);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0;
+}
+h1 {
+  font: 400 clamp(38px, 6vw, 64px)/1.04 var(--f-display);
+  letter-spacing: -.012em;
+  margin: 0;
+  text-wrap: balance;
+}
+.lede { font-size: 18px; color: var(--muted); max-width: 60ch; margin: 0; }
+.byline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  color: var(--muted);
+}
+.byline li:first-child { color: var(--ink); font-weight: 600; }
+
+.sec { display: flex; flex-direction: column; gap: 32px; }
+.sec-head { display: flex; flex-direction: column; gap: 10px; max-width: 680px; }
+h2 {
+  font: 400 clamp(28px, 3.6vw, 40px)/1.1 var(--f-display);
+  margin: 0;
+  text-wrap: balance;
+}
+.sec-head p { margin: 0; color: var(--muted); }
+
+/* ---------- Controls ---------- */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 16px;
+}
+.seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 24px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+.seg button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 14px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background .2s, color .2s;
+}
+.seg button:hover { color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); flex: none; }
+.btn-play {
+  appearance: none;
+  border: 0;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 11px 18px 11px 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.btn-play .ic { width: 16px; height: 16px; }
+.switch {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 6px 4px;
+}
+.switch .track {
+  width: 38px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--line);
+  position: relative;
+  transition: background .2s;
+}
+.switch .track::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--panel);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+  transition: transform .2s var(--ease-out);
+}
+.switch[aria-checked="true"] .track { background: var(--accent); }
+.switch[aria-checked="true"] .track::after { transform: translateX(16px); }
+.hint { text-align: center; font-size: 14px; color: var(--muted); margin: -12px 0 0; }
+
+/* ---------- Phones ---------- */
+.settings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 18px;
+  margin-top: -14px;
+}
+.settings-label {
+  font: 500 12px/1.2 var(--f-mono);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.directions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 48px 72px;
+}
+.direction { width: 342px; margin: 0; display: flex; flex-direction: column; gap: 22px; }
+.direction figcaption { display: flex; flex-direction: column; gap: 6px; padding-inline: 6px; }
+.direction h3 { font: 400 22px/1.2 var(--f-display); margin: 0; }
+.direction h3 .tag {
+  font: 500 12px/1 var(--f-mono);
+  color: var(--accent);
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  padding: 3px 6px;
+  margin-right: 8px;
+  vertical-align: 4px;
+}
+.direction figcaption p { margin: 0; font-size: 15px; color: var(--muted); }
+.direction figcaption .fit { font-size: 13px; }
+
+/* Phones are drawn in iPhone 16 points (393 x 852) and zoomed to fit the page */
+.phone {
+  zoom: .82;
+  width: 417px;
+  height: 876px;
+  padding: 12px;
+  border-radius: 67px;
+  background: linear-gradient(150deg, var(--bezel-a), var(--bezel-b));
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255, 255, 255, .08),
+    0 40px 70px -28px rgba(20, 24, 44, .5),
+    0 16px 28px -16px rgba(20, 24, 44, .35);
+}
+.screen {
+  position: relative;
+  width: 393px;
+  height: 852px;
+  border-radius: 55px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #D3A486;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.screen p { margin: 0; }
+
+/* iOS semantic colors and materials. Light by default, Dark Mode and Reduce Transparency from the page switches */
+.ios {
+  --label: #000000;
+  --label-2: rgba(60, 60, 67, .6);
+  --label-3: rgba(60, 60, 67, .3);
+  --sep: rgba(60, 60, 67, .29);
+  --fill: rgba(118, 118, 128, .12);
+  --grouped: #FFFFFF;
+  --mat: rgba(255, 255, 255, .66);
+  --mat-thick: rgba(255, 255, 255, .84);
+  --mat-blur: blur(30px) saturate(180%);
+  --lg: rgba(255, 255, 255, .34);
+  --lg-edge: rgba(255, 255, 255, .85);
+  --lg-blur: blur(8px) saturate(170%) brightness(1.14);
+  --tint: #5856D6;
+  --on-tint: #FFFFFF;
+  --tone-idle: #FF9500;
+  --tone-listen: #30B0C7;
+  --tone-think: #AF52DE;
+  --tone-speak: #FF2D55;
+  --scene-dim: brightness(1);
+  --night: 0;
+  --shadow: rgba(0, 0, 0, .12);
+  font-family: var(--f-ui);
+  color: var(--label);
+}
+[data-phone-theme="dark"] .ios {
+  --label: #FFFFFF;
+  --label-2: rgba(235, 235, 245, .6);
+  --label-3: rgba(235, 235, 245, .3);
+  --sep: rgba(84, 84, 88, .6);
+  --fill: rgba(118, 118, 128, .24);
+  --grouped: #2C2C2E;
+  --mat: rgba(28, 28, 30, .6);
+  --mat-thick: rgba(28, 28, 30, .82);
+  --lg: rgba(255, 255, 255, .1);
+  --lg-edge: rgba(255, 255, 255, .38);
+  --tint: #5E5CE6;
+  --tone-idle: #FF9F0A;
+  --tone-listen: #40CBE0;
+  --tone-think: #BF5AF2;
+  --tone-speak: #FF375F;
+  --scene-dim: brightness(.42) saturate(.8);
+  --night: 1;
+  --shadow: rgba(0, 0, 0, .35);
+}
+[data-transparency="reduced"] .ios {
+  --mat: #F2F2F7;
+  --mat-thick: #FFFFFF;
+  --lg: #F2F2F7;
+  --mat-blur: none;
+  --lg-blur: none;
+}
+[data-phone-theme="dark"][data-transparency="reduced"] .ios {
+  --mat: #1C1C1E;
+  --mat-thick: #2C2C2E;
+  --lg: #2C2C2E;
+}
+
+.scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; filter: var(--scene-dim); }
+.night {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(16, 22, 52, .55), rgba(8, 10, 28, .3));
+  opacity: var(--night);
+  transition: opacity .4s;
+  pointer-events: none;
+}
+.island {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  width: 126px;
+  height: 37px;
+  margin-left: -63px;
+  border-radius: 19px;
+  background: #000000;
+  z-index: 8;
+}
+.status {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 30px 0 54px;
+  font: 600 17px/22px var(--f-ui);
+  letter-spacing: -.43px;
+  color: var(--label);
+  z-index: 7;
+}
+.status .st { width: 78px; height: 16px; color: var(--label); }
+.home-ind {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  width: 140px;
+  height: 5px;
+  margin-left: -70px;
+  border-radius: 3px;
+  background: var(--label);
+  z-index: 9;
+}
+.ic {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+
+/* State tone lives on any element that owns a state */
+[data-state] { --tone: var(--tone-idle); --tone-on: #FFFFFF; transition: --tone .4s ease; }
+[data-state="listening"] { --tone: var(--tone-listen); --tone-on: #000000; }
+[data-state="thinking"] { --tone: var(--tone-think); }
+[data-state="speaking"] { --tone: var(--tone-speak); }
+
+/* Liquid Glass: the control layer only (dock, suggestions, state pill) */
+.lg {
+  position: relative;
+  isolation: isolate;
+  background: var(--lg);
+  -webkit-backdrop-filter: var(--lg-blur);
+  backdrop-filter: var(--lg-blur);
+  box-shadow:
+    inset 0 1px 0 var(--lg-edge),
+    inset 0 0 0 .5px color-mix(in srgb, var(--lg-edge) 55%, transparent),
+    0 8px 24px var(--shadow);
+}
+.lg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(140deg, rgba(255, 255, 255, .42), rgba(255, 255, 255, 0) 38%, rgba(255, 255, 255, 0) 64%, rgba(255, 255, 255, .16));
+  opacity: calc(1 - var(--night) * .6);
+  pointer-events: none;
+}
+[data-transparency="reduced"] .lg::before { display: none; }
+/* Regular material: the content layer (cards that carry information) */
+.mat {
+  background: var(--mat);
+  -webkit-backdrop-filter: var(--mat-blur);
+  backdrop-filter: var(--mat-blur);
+  box-shadow: 0 6px 20px var(--shadow);
+}
+
+/* NextCard: Headline + Subheadline, glass-free content on material (A) or grouped fill (B) */
+.nextcard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 14px 14px 16px;
+  border-radius: 26px;
+  color: var(--label);
+}
+.nextcard.on-sheet { padding: 12px 14px; border-radius: 20px; background: var(--grouped); }
+.nc-time {
+  font: 600 20px/24px var(--f-ui);
+  letter-spacing: -.45px;
+  text-align: center;
+  min-width: 54px;
+  font-variant-numeric: tabular-nums;
+}
+.nc-time small { display: block; font: 400 13px/16px var(--f-ui); letter-spacing: -.08px; color: var(--label-2); }
+.nc-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-left: 12px;
+  border-left: 1px solid var(--sep);
+}
+.nc-body b { font: 600 17px/22px var(--f-ui); letter-spacing: -.43px; }
+.nc-body span {
+  font: 400 15px/20px var(--f-ui);
+  letter-spacing: -.23px;
+  color: var(--label-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pill {
+  font: 600 13px/18px var(--f-ui);
+  letter-spacing: -.08px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tone-idle) 24%, transparent);
+  color: var(--label);
+  white-space: nowrap;
+}
+
+/* StatTile: Footnote label, Title 2 value, Footnote detail */
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.tile {
+  border-radius: 22px;
+  padding: 12px 12px 13px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  color: var(--label);
+}
+.tile-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font: 600 13px/18px var(--f-ui);
+  letter-spacing: -.08px;
+  color: var(--label-2);
+  white-space: nowrap;
+}
+.tile-label .ic { width: 15px; height: 15px; }
+.tile-value { margin-top: 4px; font: 700 22px/28px var(--f-ui); letter-spacing: -.26px; font-variant-numeric: tabular-nums; }
+.tile-value small { margin-left: 2px; font: 600 13px/1 var(--f-ui); letter-spacing: 0; }
+.tile-sub {
+  font: 400 13px/18px var(--f-ui);
+  letter-spacing: -.08px;
+  color: var(--label-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-role="dinner-hm"], [data-role="dinner-time"], [data-role="leave-by"] { display: inline-block; }
+.swap { animation: swap .42s var(--ease-out); }
+@keyframes swap {
+  0% { opacity: 1; transform: none; }
+  45% { opacity: 0; transform: translateY(-6px); }
+  46% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: none; }
+}
+.tile.is-updated { animation: ring-flash 1.6s ease-out; }
+@keyframes ring-flash {
+  0% { box-shadow: 0 0 0 0 transparent, 0 6px 20px var(--shadow); }
+  25% { box-shadow: 0 0 0 3px var(--tone-speak), 0 6px 20px var(--shadow); }
+  100% { box-shadow: 0 0 0 0 transparent, 0 6px 20px var(--shadow); }
+}
+.row.is-updated { animation: bg-flash 1.6s ease-out; }
+@keyframes bg-flash {
+  0% { background: transparent; }
+  25% { background: color-mix(in srgb, var(--tone-speak) 22%, transparent); }
+  100% { background: transparent; }
+}
+
+/* A: scene-first. The scene moves up so the companion stands on the desk, clear of the dock */
+.screen-a .scene { transform: translateY(-30px); }
+.screen-a .top {
+  position: absolute;
+  top: 63px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 2;
+}
+.screen-a .companion { left: calc(50% - 66px); top: 538px; transform: scale(1.45); }
+
+/* SpeechBubble: Body text on the thick material, thinking step, Undo in the tint color */
+.bubble {
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  bottom: 402px;
+  padding: 14px 16px;
+  border-radius: 22px;
+  background: var(--mat-thick);
+  -webkit-backdrop-filter: var(--mat-blur);
+  backdrop-filter: var(--mat-blur);
+  box-shadow: 0 10px 30px var(--shadow);
+  font: 400 17px/22px var(--f-ui);
+  letter-spacing: -.43px;
+  color: var(--label);
+  transform-origin: 50% 100%;
+  transition: opacity .25s var(--ease-out), transform .25s var(--ease-out);
+  z-index: 4;
+}
+.bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  background: var(--mat-thick);
+  transform: rotate(45deg);
+  border-radius: 0 0 4px 0;
+}
+[data-state="listening"] .bubble { opacity: 0; transform: translateY(8px) scale(.96); }
+[data-state="thinking"] .bubble { transition-delay: .3s; }
+[data-state="thinking"] [data-role="say"],
+[data-state="thinking"] [data-role="caption"] { color: var(--label-2); }
+[data-state="thinking"] [data-role="say"]::before,
+[data-state="thinking"] [data-role="caption"]::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--tone);
+  vertical-align: 1px;
+}
+.undo {
+  appearance: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 10px;
+  padding: 10px 0 0;
+  border: 0;
+  border-top: 1px solid var(--sep);
+  background: none;
+  font: 600 17px/22px var(--f-ui);
+  letter-spacing: -.43px;
+  color: var(--tint);
+  cursor: pointer;
+}
+.undo .ic { width: 19px; height: 19px; }
+.undo-timer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1px;
+  height: 2px;
+  background: var(--tint);
+  transform-origin: 0 50%;
+  animation: drain 8s linear forwards;
+}
+@keyframes drain { to { transform: scaleX(0); } }
+
+/* Suggestions and the user's words share one zone above the dock */
+.zone { position: absolute; left: 16px; right: 16px; bottom: 110px; height: 44px; z-index: 5; }
+.chips {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  transition: opacity .2s, transform .2s var(--ease-out);
+}
+.screen:not([data-state="idle"]) .chips { opacity: 0; transform: translateY(6px); pointer-events: none; }
+.chip-s {
+  appearance: none;
+  border: 0;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 22px;
+  font: 600 15px/20px var(--f-ui);
+  letter-spacing: -.23px;
+  color: var(--label);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.you {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  max-width: 290px;
+  padding: 11px 16px;
+  border-radius: 20px 20px 6px 20px;
+  background: var(--tint);
+  color: var(--on-tint);
+  font: 400 17px/22px var(--f-ui);
+  letter-spacing: -.43px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .2s, transform .2s var(--ease-out);
+  pointer-events: none;
+}
+[data-state="listening"] .you { opacity: 1; transform: none; }
+[data-state="thinking"] .you { opacity: .6; transform: none; }
+
+/* Dock: type on the left, talk in the thumb zone, a context action on the right */
+.dock {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 34px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 44px;
+  z-index: 7;
+}
+.dock-btn {
+  appearance: none;
+  border: 0;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--label);
+  cursor: pointer;
+  flex: none;
+}
+.dock-btn.plain { background: var(--fill); }
+.dock-btn .ic { width: 22px; height: 22px; }
+.mic {
+  appearance: none;
+  border: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--tint);
+  color: var(--on-tint);
+  display: grid;
+  place-items: center;
+  position: relative;
+  cursor: pointer;
+  flex: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .45),
+    inset 0 0 0 .5px rgba(255, 255, 255, .25),
+    0 10px 24px color-mix(in srgb, var(--tint) 38%, transparent);
+  transition: background .3s, color .3s, box-shadow .3s;
+}
+.mic .ic { width: 28px; height: 28px; }
+.mic .i-stop { display: none; }
+[data-state="speaking"] .mic .i-mic { display: none; }
+[data-state="speaking"] .mic .i-stop { display: block; }
+[data-state="listening"] .mic,
+[data-state="thinking"] .mic,
+[data-state="speaking"] .mic {
+  background: var(--tone);
+  color: var(--tone-on);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 10px 24px color-mix(in srgb, var(--tone) 38%, transparent);
+}
+.mic::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--tone);
+  opacity: 0;
+}
+[data-state="listening"] .mic::after { opacity: .8; animation: mic-pulse 1.2s ease-out infinite; }
+@keyframes mic-pulse { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(1.3); opacity: 0; } }
+.mic:focus-visible { outline: 3px solid var(--label); outline-offset: 4px; }
+
+/* Text mode: same slot, a capsule field instead of the mic */
+.typebar {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 34px;
+  height: 60px;
+  border-radius: 30px;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  z-index: 7;
+}
+.screen-b .typebar { background: var(--grouped); box-shadow: 0 4px 14px var(--shadow); }
+.screen[data-input="text"] .typebar { display: flex; }
+.screen[data-input="text"] .dock { display: none; }
+.typebar .dock-btn { width: 44px; height: 44px; }
+.field {
+  flex: 1;
+  min-width: 0;
+  padding-left: 4px;
+  font: 400 17px/22px var(--f-ui);
+  letter-spacing: -.43px;
+  color: var(--label);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.field::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 21px;
+  margin-left: 1px;
+  vertical-align: -4px;
+  border-radius: 1px;
+  background: var(--tint);
+  animation: caret 1s steps(1) infinite;
+}
+.field.is-empty { color: var(--label-3); }
+.field.is-empty::after { display: none; }
+@keyframes caret { 50% { opacity: 0; } }
+.send {
+  appearance: none;
+  border: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--tint);
+  color: var(--on-tint);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex: none;
+}
+.send .ic { width: 22px; height: 22px; stroke-width: 2.4; }
+.send:disabled { background: var(--fill); color: var(--label-3); cursor: default; }
+
+/* B: close-up + sheet, driven by --p (0 small detent, 1 large detent) */
+.screen-b { --p: 0; transition: --tone .4s ease, --p .44s var(--ease-out); }
+.screen-b.sheet-open { --p: 1; }
+.screen-b.dragging { transition: --tone .4s ease; }
+.screen-b .scene { transform: scale(1.8); transform-origin: 196px 966px; filter: blur(3px) var(--scene-dim); }
+.screen-b .companion {
+  left: calc(50% - 66px);
+  top: calc(242px - 196px * var(--p));
+  transform: scale(calc(1.8 - 1.05 * var(--p)));
+}
+.chip {
+  position: absolute;
+  top: 63px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px 0 13px;
+  border-radius: 18px;
+  font: 600 15px/20px var(--f-ui);
+  letter-spacing: -.23px;
+  white-space: nowrap;
+  color: var(--label);
+  opacity: calc(1 - var(--p) * 2.5);
+  z-index: 5;
+}
+.chip .dot { background: var(--tone); box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone) 30%, transparent); }
+.caption {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 300px;
+  padding: 14px 18px;
+  border-radius: 24px;
+  text-align: center;
+  font: 400 17px/22px var(--f-ui);
+  letter-spacing: -.43px;
+  color: var(--label);
+  opacity: calc(1 - var(--p) * 2.5);
+  z-index: 3;
+}
+.screen-b.sheet-open .caption { pointer-events: none; }
+.caption .who {
+  display: none;
+  margin-bottom: 2px;
+  font: 600 13px/18px var(--f-ui);
+  letter-spacing: -.08px;
+  color: var(--label-2);
+}
+[data-state="listening"] .caption .who { display: block; }
+[data-state="listening"] [data-role="caption"] { color: var(--label-2); }
+.caption .undo { justify-content: center; }
+
+/* DaySheet: small detent floats 8 pt in with corners concentric to the screen (55 - 8 = 47), large detent goes edge to edge */
+.sheet {
+  position: absolute;
+  left: calc(8px * (1 - var(--p)));
+  right: calc(8px * (1 - var(--p)));
+  bottom: calc(8px * (1 - var(--p)));
+  height: calc(276px + 376px * var(--p));
+  padding: 0 16px;
+  overflow: hidden;
+  border-radius: 38px 38px 47px 47px;
+  background: var(--mat-thick);
+  -webkit-backdrop-filter: var(--mat-blur);
+  backdrop-filter: var(--mat-blur);
+  box-shadow: 0 -2px 30px var(--shadow);
+  z-index: 6;
+}
+.sheet-grab { touch-action: none; cursor: grab; padding-top: 5px; }
+.screen-b.dragging .sheet-grab { cursor: grabbing; }
+.handle {
+  display: block;
+  width: 100%;
+  height: 16px;
+  border: 0;
+  background: transparent;
+  position: relative;
+  cursor: inherit;
+  border-radius: 8px;
+}
+.handle::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 36px;
+  height: 5px;
+  margin-left: -18px;
+  border-radius: 3px;
+  background: var(--label-3);
+}
+.sheet-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 4px 4px 12px;
+}
+.sheet-head b { font: 600 20px/25px var(--f-ui); letter-spacing: -.45px; }
+.sheet-head span { font: 400 15px/20px var(--f-ui); letter-spacing: -.23px; color: var(--label-2); white-space: nowrap; }
+.more {
+  display: flex;
+  flex-direction: column;
+  opacity: calc(var(--p) * 1.6 - .3);
+}
+.more h4 {
+  margin: 20px 16px 8px;
+  font: 600 15px/20px var(--f-ui);
+  letter-spacing: -.23px;
+  color: var(--label-2);
+}
+.group { border-radius: 20px; background: var(--grouped); overflow: hidden; }
+.group > * { position: relative; }
+.group > * + *::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 0;
+  height: 1px;
+  background: var(--sep);
+  transform: scaleY(.5);
+  transform-origin: 0 0;
+}
+.row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 60px;
+  padding: 9px 16px;
+}
+.row .t { font: 400 15px/20px var(--f-ui); letter-spacing: -.23px; color: var(--label-2); font-variant-numeric: tabular-nums; }
+.row b { display: block; font: 400 17px/22px var(--f-ui); letter-spacing: -.43px; }
+.m { font: 400 15px/20px var(--f-ui); letter-spacing: -.23px; color: var(--label-2); }
+.task {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 16px;
+  font: 400 17px/22px var(--f-ui);
+  letter-spacing: -.43px;
+}
+.task i { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--label-3); flex: none; }
+
+[data-phone-theme="dark"] .screen .c-body { filter: brightness(.88); }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+[hidden] { display: none !important; }
+[data-motion="reduced"] .undo-timer,
+[data-motion="reduced"] .field::after { animation: none !important; }
+[data-motion="reduced"] .chips,
+[data-motion="reduced"] .you,
+[data-motion="reduced"] .night { transition: none; }
+[data-motion="reduced"] [data-state="thinking"] .bubble { transition-delay: 0s; }
+
+/* ---------- Companion (placeholder character) ---------- */
+.companion {
+  --level: 0;
+  --mouth: .55;
+  position: absolute;
+  width: 132px;
+  height: 150px;
+  transform-origin: 50% 100%;
+  z-index: 3;
+  pointer-events: none;
+}
+.c-glow {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 280px;
+  height: 280px;
+  margin: -140px 0 0 -140px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--tone) 62%, transparent), transparent);
+  transform: scale(calc(.8 + var(--level) * .45));
+}
+.c-ring {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: 168px;
+  height: 168px;
+  margin: -84px 0 0 -84px;
+  border-radius: 50%;
+  border: 2px solid var(--tone);
+  opacity: 0;
+  transform: scale(calc(.92 + var(--level) * .2));
+  transition: opacity .24s;
+}
+[data-state="listening"] .c-ring { opacity: .75; }
+.c-ripples i {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: 150px;
+  height: 150px;
+  margin: -75px 0 0 -75px;
+  border-radius: 50%;
+  border: 2px solid var(--tone);
+  opacity: 0;
+}
+[data-state="speaking"] .c-ripples i { animation: ripple 1.4s cubic-bezier(.2, .6, .3, 1) infinite; }
+[data-state="speaking"] .c-ripples i:nth-child(2) { animation-delay: .47s; }
+[data-state="speaking"] .c-ripples i:nth-child(3) { animation-delay: .93s; }
+@keyframes ripple { 0% { transform: scale(.7); opacity: .6; } 100% { transform: scale(1.7); opacity: 0; } }
+.c-shadow {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: -7px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(80, 35, 15, .38), transparent);
+}
+.c-pose {
+  position: absolute;
+  inset: 14px 6px 0;
+  transform-origin: 50% 100%;
+  transition: transform .24s var(--ease-out);
+}
+[data-state="listening"] .c-pose { transform: translateY(-4px) rotate(-3deg) scale(1.03); }
+[data-state="thinking"] .c-pose { transform: rotate(2deg); }
+.c-breath {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 100%;
+  animation: breathe 4s ease-in-out infinite;
+}
+[data-state="speaking"] .c-breath { animation: bob .8s ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { transform: none; } 50% { transform: translateY(-1px) scaleY(1.025); } }
+@keyframes bob { 0%, 100% { transform: none; } 50% { transform: translateY(-2px); } }
+.c-antenna {
+  position: absolute;
+  left: 50%;
+  top: -12px;
+  width: 4px;
+  height: 16px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: #E2B994;
+}
+.c-antenna::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -8px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  border-radius: 50%;
+  background: var(--tone);
+  box-shadow: 0 0 10px var(--tone);
+}
+.c-body {
+  position: absolute;
+  inset: 0;
+  border-radius: 50% 50% 44% 44% / 56% 56% 44% 44%;
+  background: radial-gradient(120% 90% at 35% 22%, #FFFDF8 0%, #FBEBDA 45%, #EBC5A3 100%);
+  box-shadow:
+    inset -8px -10px 18px rgba(170, 100, 60, .26),
+    inset 6px 8px 14px rgba(255, 255, 255, .8),
+    0 10px 22px rgba(90, 40, 20, .2);
+}
+.c-visor {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 30px;
+  height: 56px;
+  border-radius: 26px;
+  background: linear-gradient(#2E2740, #1C1829);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, .45), 0 1px 0 rgba(255, 255, 255, .7);
+}
+.c-eyes { position: absolute; inset: 0; transform-origin: 50% 45%; animation: blink 5s infinite; }
+@keyframes blink { 0%, 95%, 100% { transform: none; } 97.5% { transform: scaleY(.08); } }
+.c-eyes i {
+  position: absolute;
+  top: 15px;
+  width: 14px;
+  height: 22px;
+  border-radius: 7px;
+  background: var(--tone);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--tone) 80%, transparent);
+  transition: width .24s var(--ease-out), height .24s var(--ease-out), top .24s var(--ease-out), transform .3s var(--ease-out);
+}
+.c-eyes i:first-child { left: 20px; }
+.c-eyes i:last-child { right: 20px; }
+[data-state="listening"] .c-eyes i { width: 16px; height: 21px; top: 14px; }
+[data-state="thinking"] .c-eyes i { height: 12px; top: 13px; transform: translate(4px, -2px); }
+.c-mouth {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  width: 18px;
+  height: 7px;
+  margin-left: -9px;
+  border-radius: 3px 3px 10px 10px;
+  background: var(--tone);
+  opacity: .92;
+  transform-origin: 50% 0;
+  transform: scaleY(var(--mouth));
+}
+[data-state="thinking"] .c-mouth { --mouth: .35; }
+.c-cheek {
+  position: absolute;
+  top: 89px;
+  width: 16px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 130, 110, .35);
+}
+.c-cheek.c-l { left: 18px; }
+.c-cheek.c-r { right: 18px; }
+.c-orbit {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  transition: opacity .2s;
+  animation: spin 1.6s linear infinite;
+}
+[data-state="thinking"] .c-orbit { opacity: 1; transition-delay: .3s; }
+.c-orbit i {
+  position: absolute;
+  left: -5px;
+  top: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--tone);
+  box-shadow: 0 0 10px var(--tone);
+  transform: rotate(0deg) translateY(-84px);
+}
+.c-orbit i:nth-child(2) { transform: rotate(-24deg) translateY(-84px) scale(.75); opacity: .7; }
+.c-orbit i:nth-child(3) { transform: rotate(-48deg) translateY(-84px) scale(.5); opacity: .45; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Reduced motion: state stays readable through tone, pose and labels */
+[data-motion="reduced"] .companion *,
+[data-motion="reduced"] .bars i,
+[data-motion="reduced"] .mic::after,
+[data-motion="reduced"] .swap,
+[data-motion="reduced"] .is-updated { animation: none !important; }
+[data-motion="reduced"] .c-pose,
+[data-motion="reduced"] .c-eyes i,
+[data-motion="reduced"] .bubble { transition: none !important; }
+[data-motion="reduced"] .c-ripples { display: none; }
+[data-motion="reduced"] [data-state="thinking"] .c-orbit { transition-delay: 0s; transform: rotate(24deg); }
+[data-motion="reduced"] [data-state] { transition-duration: .15s; }
+[data-motion="reduced"] .screen-b { transition: --tone .15s linear; }
+
+/* ---------- States section ---------- */
+.states { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.state-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 10px 10px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.mini {
+  position: relative;
+  height: 210px;
+  border-radius: 15px;
+  overflow: hidden;
+  background: linear-gradient(var(--stage-top), var(--stage-bottom));
+}
+.mini::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 30px;
+  background: var(--desk);
+}
+.mini .companion { left: calc(50% - 66px); bottom: 27px; transform: scale(.92); z-index: 1; }
+.state-body { display: flex; flex-direction: column; gap: 12px; padding-inline: 8px; }
+.state-body h3 { font: 400 24px/1.1 var(--f-display); margin: 0; }
+.tone { display: flex; align-items: center; gap: 8px; margin: -4px 0 0; font-size: 14px; color: var(--muted); }
+.sw {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--c);
+  flex: none;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08);
+}
+code { font-family: var(--f-mono); font-size: 13px; }
+.state-body dl { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.state-body dl div { display: flex; flex-direction: column; gap: 2px; }
+.state-body dt {
+  font: 500 11px/1.3 var(--f-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.state-body dd { margin: 0; font-size: 14px; line-height: 1.45; }
+
+/* ---------- Glass section ---------- */
+.glass-demo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.glass-demo figure { margin: 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.crop {
+  position: relative;
+  aspect-ratio: 5 / 3;
+  max-width: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+}
+.crop .scene { position: absolute; inset: 0; }
+.crop .nextcard { position: absolute; left: 5%; top: 30%; width: 250px; }
+.nextcard.bare { background: none; border: 1px solid transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.glass-demo figcaption { font-size: 14px; color: var(--muted); }
+.glass-demo figcaption b { color: var(--ink); font-weight: 600; margin-right: 6px; }
+.glass-note { max-width: 68ch; margin: 0; color: var(--muted); }
+.glass-note strong { color: var(--ink); font-weight: 600; }
+
+/* ---------- Handoff ---------- */
+.handoff { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 22px 24px 14px;
+  min-width: 0;
+}
+.panel h3 {
+  font: 500 12px/1.3 var(--f-mono);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+.comp-list { list-style: none; margin: 0; padding: 0; }
+.comp-list li {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 4px 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.comp-list li:first-child { border-top: 0; }
+.comp-list code { font-size: 14px; color: var(--ink); }
+.comp-list span { font-size: 14px; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font: inherit; font-size: 14px; color: inherit; }
+td { padding: 10px 0; border-top: 1px solid var(--line); vertical-align: top; }
+tr:first-child td { border-top: 0; }
+td:first-child { font-family: var(--f-mono); font-size: 13px; padding-right: 16px; white-space: nowrap; }
+td:last-child { font-family: var(--f-mono); font-size: 13px; color: var(--muted); }
+td .sw { display: inline-block; vertical-align: -2px; margin-right: 8px; }
+
+/* ---------- Decisions ---------- */
+.decisions { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 24px; }
+.decisions li { border-top: 1px solid var(--line); padding-top: 16px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.decisions h3 { margin: 0; font: 600 17px/1.3 var(--f-body); }
+.decisions p { margin: 0; font-size: 15px; color: var(--muted); }
+
+/* ---------- Questions ---------- */
+.asks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.asks li {
+  border-top: 2px solid var(--ink);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.asks .q { margin: 0; font-size: 18px; font-weight: 600; line-height: 1.35; text-wrap: balance; }
+.asks .why { margin: 0; font-size: 15px; color: var(--muted); }
+
+.foot {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 24px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+@media (max-width: 1000px) {
+  .states, .decisions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 820px) {
+  .handoff { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .board { gap: 80px; padding-block: 40px 48px; }
+  .glass-demo, .asks { grid-template-columns: minmax(0, 1fr); }
+  .comp-list li { grid-template-columns: minmax(0, 1fr); }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .states, .decisions { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 371px) {
+  .phone { zoom: .76; }
+  .direction { width: 317px; }
+}
+</style>
+
+<!-- Shared drawings: the warm scene and the icon set -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="gWall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F7ECE2"/>
+      <stop offset=".82" stop-color="#EDD1BC"/>
+    </linearGradient>
+    <linearGradient id="gFloor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E2BEA3"/>
+      <stop offset="1" stop-color="#D3A486"/>
+    </linearGradient>
+    <radialGradient id="gGlow">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FDEEDB"/>
+      <stop offset="1" stop-color="#F4C0A0"/>
+    </linearGradient>
+    <linearGradient id="gDesk" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#B9724F"/>
+      <stop offset="1" stop-color="#8E5137"/>
+    </linearGradient>
+    <radialGradient id="gLamp">
+      <stop offset="0" stop-color="#FFE9AE" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#FFE9AE" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="gBulb">
+      <stop offset="0" stop-color="#FFE59A" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#FFE59A" stop-opacity="0"/>
+    </radialGradient>
+
+    <g id="scene">
+      <rect width="320" height="700" fill="url(#gWall)"/>
+      <circle cx="160" cy="170" r="190" fill="url(#gGlow)"/>
+      <!-- arched window -->
+      <path d="M94 304 V164 A66 66 0 0 1 226 164 V304 Z" fill="#FBF4EC"/>
+      <path d="M103 298 V166 A57 57 0 0 1 217 166 V298 Z" fill="url(#gSky)"/>
+      <circle cx="182" cy="196" r="15" fill="#FFF7EA"/>
+      <path d="M103 258 Q134 236 164 250 T217 242 V298 H103 Z" fill="#E9B497"/>
+      <path d="M103 276 Q146 258 186 272 T217 266 V298 H103 Z" fill="#DA9C80"/>
+      <rect x="158" y="109" width="4" height="189" fill="#FBF4EC"/>
+      <rect x="103" y="228" width="114" height="4" fill="#FBF4EC"/>
+      <rect x="86" y="298" width="148" height="8" rx="3" fill="#F8EADF"/>
+      <rect x="90" y="306" width="140" height="3" fill="#E2C2AA" opacity=".55"/>
+      <!-- floor lamp -->
+      <circle cx="266" cy="452" r="64" fill="url(#gLamp)"/>
+      <path d="M252 452 h30 l-5 -20 h-20 z" fill="#F6EADC"/>
+      <rect x="265.5" y="452" width="3" height="123" fill="#9C7A66"/>
+      <ellipse cx="267" cy="575" rx="13" ry="3" fill="#9C7A66"/>
+      <!-- plant -->
+      <g transform="translate(-8 0)">
+      <ellipse cx="34" cy="470" rx="9" ry="34" transform="rotate(-18 34 470)" fill="#8EA58A"/>
+      <ellipse cx="52" cy="462" rx="9" ry="38" transform="rotate(12 52 462)" fill="#7C967B"/>
+      <ellipse cx="43" cy="446" rx="8" ry="32" transform="rotate(-2 43 446)" fill="#6F8A70"/>
+      <ellipse cx="64" cy="486" rx="8" ry="26" transform="rotate(36 64 486)" fill="#9DB399"/>
+      <ellipse cx="22" cy="490" rx="8" ry="24" transform="rotate(-44 22 490)" fill="#8EA58A"/>
+      <path d="M22 512 h42 l-4 63 h-34 z" fill="#EFE3D6"/>
+      <rect x="20" y="508" width="46" height="7" rx="3" fill="#F6ECE2"/>
+      </g>
+      <!-- floor -->
+      <rect x="0" y="575" width="320" height="125" fill="url(#gFloor)"/>
+      <rect x="0" y="575" width="320" height="2" fill="#EBCBB2"/>
+      <ellipse cx="160" cy="606" rx="118" ry="13" fill="#C99173" opacity=".28"/>
+    </g>
+
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 10"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M4 8l8 5.5L20 8"/></symbol>
+    <symbol id="i-rain" viewBox="0 0 24 24"><path d="M4 13a8 8 0 0 1 16 0z"/><path d="M12 13v5a2 2 0 0 0 4 0"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v3"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2.5" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-kbd" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="3"/><path d="M7 10h.01M11 10h.01M15 10h.01M8 14h8"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 7h10M9 12h10M9 17h10M5 7h.01M5 12h.01M5 17h.01"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-mic-fill" viewBox="0 0 24 24"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5" fill="currentColor" stroke="none"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5M5.5 11.5L12 5l6.5 6.5"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5"/><path d="M3.5 3.5v5h5"/><path d="M12 7.5V12l3 2"/></symbol>
+    <symbol id="i-status" viewBox="0 0 68 14">
+      <rect x="0" y="9" width="3" height="4" rx="1" fill="currentColor"/>
+      <rect x="5" y="6" width="3" height="7" rx="1" fill="currentColor"/>
+      <rect x="10" y="3" width="3" height="10" rx="1" fill="currentColor"/>
+      <rect x="15" y="0" width="3" height="13" rx="1" fill="currentColor"/>
+      <path d="M27 5a10 10 0 0 1 13 0M30 8.2a5.5 5.5 0 0 1 7 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      <circle cx="33.5" cy="11.3" r="1.6" fill="currentColor"/>
+      <rect x="45.5" y="1" width="19" height="12" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".5"/>
+      <rect x="47.5" y="3" width="13" height="8" rx="2" fill="currentColor"/>
+      <rect x="66" y="5" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".5"/>
+    </symbol>
+  </defs>
+</svg>
+
+<template id="tpl-companion">
+  <div class="companion" aria-hidden="true">
+    <div class="c-glow"></div>
+    <div class="c-ripples"><i></i><i></i><i></i></div>
+    <div class="c-ring"></div>
+    <div class="c-shadow"></div>
+    <div class="c-pose">
+      <div class="c-breath">
+        <div class="c-antenna"></div>
+        <div class="c-body">
+          <div class="c-visor">
+            <div class="c-eyes"><i></i><i></i></div>
+            <div class="c-mouth"></div>
+          </div>
+          <i class="c-cheek c-l"></i><i class="c-cheek c-r"></i>
+        </div>
+      </div>
+    </div>
+    <div class="c-orbit"><i></i><i></i><i></i></div>
+  </div>
+</template>
+
+<main class="board" id="board" data-motion="full" data-phone-theme="light" data-transparency="full">
+
+  <header class="intro">
+    <p class="eyebrow">AI companion &middot; Home screen concepts</p>
+    <h1>A companion you can read <em>at a glance</em></h1>
+    <p class="lede">Two directions for the Home screen, drawn to Apple&rsquo;s iOS 26 guidelines, and the four states the companion moves through. The character is a placeholder. These sketches cover structure and behavior, not the final render.</p>
+    <ul class="byline">
+      <li>Elena Matveeva</li>
+      <li>Personal concept</li>
+      <li>October 2026</li>
+    </ul>
+  </header>
+
+  <section class="sec" aria-labelledby="h-directions">
+    <div class="sec-head">
+      <h2 id="h-directions">Two directions, one set of components</h2>
+      <p>Both phones run the same state machine and share every component. Play a request to watch it move through all four states and change the day, then flip the iPhone settings to see Dark Mode and the accessibility versions.</p>
+    </div>
+
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Companion state">
+        <button type="button" id="st-idle" data-set-state="idle" aria-pressed="true"><span class="dot" style="--c: var(--tone-idle)"></span>Idle</button>
+        <button type="button" id="st-listening" data-set-state="listening" aria-pressed="false"><span class="dot" style="--c: var(--tone-listen)"></span>Listening</button>
+        <button type="button" id="st-thinking" data-set-state="thinking" aria-pressed="false"><span class="dot" style="--c: var(--tone-think)"></span>Thinking</button>
+        <button type="button" id="st-speaking" data-set-state="speaking" aria-pressed="false"><span class="dot" style="--c: var(--tone-speak)"></span>Speaking</button>
+      </div>
+      <button type="button" class="btn-play" id="play-demo"><svg class="ic"><use href="#i-play"/></svg><span>Play a request</span></button>
+    </div>
+    <div class="settings" role="group" aria-label="iPhone settings">
+      <span class="settings-label">iPhone settings</span>
+      <button type="button" class="switch" id="theme-switch" role="switch" aria-checked="false"><span class="track"></span>Dark Mode</button>
+      <button type="button" class="switch" id="transparency-switch" role="switch" aria-checked="false"><span class="track"></span>Reduce Transparency</button>
+      <button type="button" class="switch" id="motion-switch" role="switch" aria-checked="false"><span class="track"></span>Reduce Motion</button>
+    </div>
+    <p class="hint">In either phone, tap the mic, a suggestion or the keyboard. After a change, try Undo. In B, drag the sheet up or tap the list button.</p>
+
+    <p id="live" class="sr-only" aria-live="polite"></p>
+    <div class="directions">
+      <figure class="direction">
+        <div class="phone">
+          <div class="screen ios screen-a" data-state="idle" data-input="voice" role="group" aria-label="Direction A, Scene-first">
+            <svg class="scene" viewBox="0 0 320 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#scene"/></svg>
+            <div class="night"></div>
+            <div class="island"></div>
+            <div class="status"><span>9:41</span><svg class="st" viewBox="0 0 68 14" aria-hidden="true"><use href="#i-status"/></svg></div>
+
+            <div class="top">
+              <article class="nextcard mat" aria-label="Next up">
+                <span class="nc-time">10:30<small>AM</small></span>
+                <div class="nc-body"><b>Design review</b><span>Zoom &middot; Priya, Dan</span></div>
+                <span class="pill">in 49 min</span>
+              </article>
+              <div class="tiles">
+                <article class="tile mat">
+                  <p class="tile-label"><svg class="ic"><use href="#i-check"/></svg>Tasks</p>
+                  <p class="tile-value">3/7</p>
+                  <p class="tile-sub">done today</p>
+                </article>
+                <article class="tile mat">
+                  <p class="tile-label"><svg class="ic"><use href="#i-mail"/></svg>Inbox</p>
+                  <p class="tile-value">4</p>
+                  <p class="tile-sub">to reply</p>
+                </article>
+                <article class="tile mat" data-role="dinner">
+                  <p class="tile-label"><svg class="ic"><use href="#i-rain"/></svg>Tonight</p>
+                  <p class="tile-value"><span data-role="dinner-hm">7:30</span><small>PM</small></p>
+                  <p class="tile-sub">Dinner, Sam</p>
+                </article>
+              </div>
+            </div>
+
+            <div data-companion></div>
+            <div class="bubble">
+              <span data-role="say">Morning, Alex. Priya moved your 1:1 to 3, so the morning is yours.</span>
+              <button type="button" class="undo" id="undo-a" data-action="undo" hidden><svg class="ic"><use href="#i-undo"/></svg>Undo<i class="undo-timer"></i></button>
+            </div>
+
+            <div class="zone">
+              <div class="chips">
+                <button type="button" class="chip-s lg" id="chip-next" data-run="next">What&rsquo;s next?</button>
+                <button type="button" class="chip-s lg" id="chip-dinner" data-run="dinner">Move dinner to 8</button>
+              </div>
+              <p class="you" data-role="you">Move dinner with Sam to 8</p>
+            </div>
+
+            <div class="dock">
+              <button type="button" class="dock-btn lg" id="type-a" data-action="type" aria-label="Type instead"><svg class="ic"><use href="#i-kbd"/></svg></button>
+              <button type="button" class="mic" id="mic-a" data-action="talk" aria-label="Talk to your companion"><svg class="ic i-mic"><use href="#i-mic-fill"/></svg><svg class="ic i-stop"><use href="#i-stop"/></svg></button>
+              <span class="dock-btn lg" aria-hidden="true"><svg class="ic"><use href="#i-history"/></svg></span>
+            </div>
+            <div class="typebar lg">
+              <button type="button" class="dock-btn plain" id="voice-a" data-action="voice" aria-label="Back to voice"><svg class="ic"><use href="#i-mic"/></svg></button>
+              <p class="field" data-role="field">Move dinner with Sam to 8</p>
+              <button type="button" class="send" id="send-a" data-action="send" aria-label="Send"><svg class="ic"><use href="#i-send"/></svg></button>
+            </div>
+            <div class="home-ind"></div>
+          </div>
+        </div>
+        <figcaption>
+          <h3><span class="tag">A</span>Scene-first</h3>
+          <p>The companion is the hero. Information sits on the regular material, so text never lands on the busy scene.</p>
+          <p class="fit">Best for larger phones and quick morning check-ins.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="direction">
+        <div class="phone">
+          <div class="screen ios screen-b" data-state="idle" data-input="voice" role="group" aria-label="Direction B, Close-up and sheet">
+            <svg class="scene" viewBox="0 0 320 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#scene"/></svg>
+            <div class="night"></div>
+            <div class="island"></div>
+            <div class="status"><span>9:41</span><svg class="st" viewBox="0 0 68 14" aria-hidden="true"><use href="#i-status"/></svg></div>
+
+            <div class="chip lg"><span class="dot"></span><span data-role="chip">Here when you need me</span></div>
+            <div data-companion></div>
+            <div class="caption mat">
+              <span class="who">You</span>
+              <span data-role="caption">Morning, Alex. Priya moved your 1:1 to 3, so the morning is yours.</span>
+              <button type="button" class="undo" id="undo-b" data-action="undo" hidden><svg class="ic"><use href="#i-undo"/></svg>Undo<i class="undo-timer"></i></button>
+            </div>
+
+            <section class="sheet" aria-label="Your day">
+              <div class="sheet-grab">
+                <button type="button" class="handle" id="sheet-handle" aria-expanded="false" aria-label="Show the whole day"></button>
+                <div class="sheet-head"><b>Today</b><span>4 left &middot; Tue, Oct 28</span></div>
+              </div>
+              <article class="nextcard on-sheet" aria-label="Next up">
+                <span class="nc-time">10:30<small>AM</small></span>
+                <div class="nc-body"><b>Design review</b><span>Zoom &middot; Priya, Dan</span></div>
+                <span class="pill">in 49 min</span>
+              </article>
+              <div class="more">
+                <h4>Later today</h4>
+                <div class="group">
+                  <div class="row"><span class="t">12:30 PM</span><div><b>Lunch with Dan</b><span class="m">Cafe downstairs</span></div></div>
+                  <div class="row"><span class="t">3:00 PM</span><div><b>1:1 with Priya</b><span class="m">Moved from 11:00 AM</span></div></div>
+                  <div class="row" data-role="dinner"><span class="t" data-role="dinner-time">7:30 PM</span><div><b>Dinner with Sam</b><span class="m">Rain at 6, leave by <span data-role="leave-by">6:50</span></span></div></div>
+                </div>
+                <h4>To do</h4>
+                <div class="group">
+                  <div class="task"><i></i>Send Q4 deck to Mark</div>
+                  <div class="task"><i></i>Reply to Priya&rsquo;s notes</div>
+                </div>
+              </div>
+            </section>
+
+            <div class="dock">
+              <button type="button" class="dock-btn plain" id="type-b" data-action="type" aria-label="Type instead"><svg class="ic"><use href="#i-kbd"/></svg></button>
+              <button type="button" class="mic" id="mic-b" data-action="talk" aria-label="Talk to your companion"><svg class="ic i-mic"><use href="#i-mic-fill"/></svg><svg class="ic i-stop"><use href="#i-stop"/></svg></button>
+              <button type="button" class="dock-btn plain" id="day-b" data-action="day" aria-label="Show the whole day" aria-expanded="false"><svg class="ic"><use href="#i-list"/></svg></button>
+            </div>
+            <div class="typebar">
+              <button type="button" class="dock-btn plain" id="voice-b" data-action="voice" aria-label="Back to voice"><svg class="ic"><use href="#i-mic"/></svg></button>
+              <p class="field" data-role="field">Move dinner with Sam to 8</p>
+              <button type="button" class="send" id="send-b" data-action="send" aria-label="Send"><svg class="ic"><use href="#i-send"/></svg></button>
+            </div>
+            <div class="home-ind"></div>
+          </div>
+        </div>
+        <figcaption>
+          <h3><span class="tag">B</span>Close-up + sheet</h3>
+          <p>For smaller phones, or when the user wants to talk more than read. The day is one swipe away.</p>
+          <p class="fit">Best for voice-first use and compact screens.</p>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-decisions">
+    <div class="sec-head">
+      <h2 id="h-decisions">Six decisions behind the screens</h2>
+      <p>What each choice does for the person holding the phone.</p>
+    </div>
+    <ul class="decisions">
+      <li>
+        <h3>The next event leads</h3>
+        <p>One wide card with a countdown sits on top. Tasks, inbox and tonight shrink to tiles, so the companion gets the space they free up.</p>
+      </li>
+      <li>
+        <h3>Talk or type</h3>
+        <p>The mic sits in the thumb zone and the keyboard is one tap away, for meetings, trains and people who would rather not speak. A typed request skips Listening.</p>
+      </li>
+      <li>
+        <h3>Suggestions on an idle screen</h3>
+        <p>Two chips built from the day show what the companion can do, so a new user never starts at a blank mic.</p>
+      </li>
+      <li>
+        <h3>Thinking names the step</h3>
+        <p>A short line like &ldquo;Checking Sam&rsquo;s evening&rdquo; turns a 1.5 s wait into visible progress.</p>
+      </li>
+      <li>
+        <h3>Changes can be undone</h3>
+        <p>When the companion edits the calendar or contacts someone, the reply says so and offers Undo for 8 seconds.</p>
+      </li>
+      <li>
+        <h3>Clear turns</h3>
+        <p>Your words appear by the mic, the companion&rsquo;s above its head. Screen readers hear each reply once, as a whole sentence.</p>
+      </li>
+    </ul>
+  </section>
+
+  <section class="sec" aria-labelledby="h-ios">
+    <div class="sec-head">
+      <h2 id="h-ios">Built on Apple&rsquo;s iOS guidelines</h2>
+      <p>Both directions follow the Human Interface Guidelines for iOS 26, so they feel native on day one and cost less to build.</p>
+    </div>
+    <ul class="decisions">
+      <li>
+        <h3>Liquid Glass for controls, material for content</h3>
+        <p>The dock, suggestions and the state pill float on Liquid Glass. Cards that carry information sit on the regular material, so text stays readable over the scene. Inside the sheet, buttons use a plain fill, so glass never stacks on glass.</p>
+      </li>
+      <li>
+        <h3>System text styles</h3>
+        <p>Body 17, Headline 17, Subheadline 15, Footnote 13 and Title 2 for numbers. Every label is a text style, so it scales with Dynamic Type.</p>
+      </li>
+      <li>
+        <h3>Real iPhone geometry</h3>
+        <p>Drawn at 393 &times; 852 pt, the iPhone 16 screen, with 59 pt and 34 pt safe areas, 16 pt margins and 44 pt minimum touch targets.</p>
+      </li>
+      <li>
+        <h3>A native sheet</h3>
+        <p>The day uses two detents and a drag indicator. At the small detent it floats 8 pt from the edges with corners concentric to the screen, then goes edge to edge at the large one.</p>
+      </li>
+      <li>
+        <h3>System colors and SF Symbols</h3>
+        <p>Text uses label and secondaryLabel. States use systemOrange, systemTeal, systemPurple and systemPink, so Dark Mode and Increase Contrast adapt without extra work. Every icon maps to an SF Symbol.</p>
+      </li>
+      <li>
+        <h3>Settings people already chose</h3>
+        <p>Dark Mode, Reduce Transparency and Reduce Motion change both phones live. Try the switches above the phones.</p>
+      </li>
+    </ul>
+  </section>
+
+  <section class="sec" aria-labelledby="h-states">
+    <div class="sec-head">
+      <h2 id="h-states">Four states, each with a job</h2>
+      <p>Motion tells the user what the assistant is doing. Each state changes the tone, the pose and one signature movement, and each one has a reduced-motion version.</p>
+    </div>
+    <div class="states">
+      <article class="state-card">
+        <div class="mini" data-state="idle"><div data-companion></div></div>
+        <div class="state-body">
+          <h3>Idle</h3>
+          <p class="tone"><span class="sw" style="--c: var(--tone-idle)"></span>systemOrange <code>#FF9500</code></p>
+          <dl>
+            <div><dt>Starts when</dt><dd>The app opens, or a reply finishes.</dd></div>
+            <div><dt>Motion</dt><dd>Breathes on a 4 s loop, ease-in-out. Blinks every 4 to 6 s.</dd></div>
+            <div><dt>Reduced motion</dt><dd>Still pose, eyes open.</dd></div>
+          </dl>
+        </div>
+      </article>
+      <article class="state-card">
+        <div class="mini" data-state="listening"><div data-companion></div></div>
+        <div class="state-body">
+          <h3>Listening</h3>
+          <p class="tone"><span class="sw" style="--c: var(--tone-listen)"></span>systemTeal <code>#30B0C7</code></p>
+          <dl>
+            <div><dt>Starts when</dt><dd>The user taps the mic or says the wake word. Typed requests skip this state.</dd></div>
+            <div><dt>Motion</dt><dd>Leans in over 240 ms. Glow and ring follow the mic level, smoothed over 60 ms.</dd></div>
+            <div><dt>Reduced motion</dt><dd>Static ring and a Listening label.</dd></div>
+          </dl>
+        </div>
+      </article>
+      <article class="state-card">
+        <div class="mini" data-state="thinking"><div data-companion></div></div>
+        <div class="state-body">
+          <h3>Thinking</h3>
+          <p class="tone"><span class="sw" style="--c: var(--tone-think)"></span>systemPurple <code>#AF52DE</code></p>
+          <dl>
+            <div><dt>Starts when</dt><dd>700 ms of silence ends the user&rsquo;s turn.</dd></div>
+            <div><dt>Motion</dt><dd>Three dots orbit every 1.6 s and a step line says what it is checking. Both wait 300 ms, so quick replies never flash.</dd></div>
+            <div><dt>Reduced motion</dt><dd>Dots hold still in an arc. The step line stays.</dd></div>
+          </dl>
+        </div>
+      </article>
+      <article class="state-card">
+        <div class="mini" data-state="speaking"><div data-companion></div></div>
+        <div class="state-body">
+          <h3>Speaking</h3>
+          <p class="tone"><span class="sw" style="--c: var(--tone-speak)"></span>systemPink <code>#FF2D55</code></p>
+          <dl>
+            <div><dt>Starts when</dt><dd>The first audio chunk arrives.</dd></div>
+            <div><dt>Motion</dt><dd>Mouth follows the audio level. A ripple leaves every 470 ms and fades over 1.4 s.</dd></div>
+            <div><dt>Reduced motion</dt><dd>No ripples or mouth movement. Captions stay on screen.</dd></div>
+          </dl>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-glass">
+    <div class="sec-head">
+      <h2 id="h-glass">Why information sits on material</h2>
+    </div>
+    <div class="glass-demo">
+      <figure>
+        <div class="crop ios">
+          <svg class="scene" viewBox="16 100 300 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#scene"/></svg>
+          <article class="nextcard bare">
+            <span class="nc-time">10:30<small>AM</small></span>
+            <div class="nc-body"><b>Design review</b><span>Zoom &middot; Priya, Dan</span></div>
+          </article>
+        </div>
+        <figcaption><b>On the scene</b>Contrast changes across the window frame, the sky and the wall.</figcaption>
+      </figure>
+      <figure>
+        <div class="crop ios">
+          <svg class="scene" viewBox="16 100 300 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#scene"/></svg>
+          <article class="nextcard mat">
+            <span class="nc-time">10:30<small>AM</small></span>
+            <div class="nc-body"><b>Design review</b><span>Zoom &middot; Priya, Dan</span></div>
+          </article>
+        </div>
+        <figcaption><b>On the regular material</b>The same text, readable wherever the card lands.</figcaption>
+      </figure>
+    </div>
+    <p class="glass-note">Body text needs <strong>4.5:1</strong> contrast with whatever sits behind it. Over the window and shelves that changes from pixel to pixel, so every card that carries information sits on the regular material: a 30 pt blur under a 66% fill that turns solid with Reduce Transparency. Controls use the clearer Liquid Glass because they hold one symbol or a short label. The companion stays the only thing that sits on the scene directly.</p>
+  </section>
+
+  <section class="sec" aria-labelledby="h-handoff">
+    <div class="sec-head">
+      <h2 id="h-handoff">Built to hand off</h2>
+      <p>Every piece maps to a native building block and every value to a token, so the spec and the build stay in step. Names are SwiftUI for iOS 26; Flutter and React Native have close equivalents.</p>
+    </div>
+    <div class="handoff">
+      <div class="panel">
+        <h3>Components</h3>
+        <ul class="comp-list">
+          <li><code>CompanionStage</code><span>Rive or Lottie view. state: idle, listening, thinking, speaking. Reads accessibilityReduceMotion.</span></li>
+          <li><code>NextCard</code><span>.background(.regularMaterial, in: .rect(cornerRadius: 26)). Fonts .headline and .subheadline. Solid grouped fill inside the sheet.</span></li>
+          <li><code>StatTile</code><span>Same material, radius 22. Value in .title2 bold, label and detail in .footnote.</span></li>
+          <li><code>SpeechBubble</code><span>.thickMaterial, text in .body. Step line while thinking. Undo is a plain button in the tint color, shown for 8 s.</span></li>
+          <li><code>SuggestionChip</code><span>.buttonStyle(.glass), 44 pt capsule. Hidden while the companion is busy.</span></li>
+          <li><code>Dock</code><span>Side buttons .buttonStyle(.glass), 50 pt. Mic .buttonStyle(.glassProminent), 64 pt, tinted by state. Turns into stop while the companion speaks.</span></li>
+          <li><code>DaySheet</code><span>.presentationDetents([.height(276), .large]), .presentationDragIndicator(.visible), .presentationBackgroundInteraction(.enabled).</span></li>
+          <li><code>Haptics</code><span>.sensoryFeedback(.impact(weight: .light)) on the mic, .success when a change lands.</span></li>
+          <li><code>SF Symbols</code><span>calendar, checklist, envelope, cloud.rain, mic.fill, keyboard, list.bullet, clock.arrow.circlepath, arrow.up, arrow.uturn.backward, stop.fill.</span></li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Tokens</h3>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr><td>font/body</td><td>SF Pro 17 / 22</td></tr>
+              <tr><td>font/headline</td><td>SF Pro 17 / 22 semibold</td></tr>
+              <tr><td>font/subheadline</td><td>SF Pro 15 / 20</td></tr>
+              <tr><td>font/footnote</td><td>SF Pro 13 / 18</td></tr>
+              <tr><td>font/title2</td><td>SF Pro 22 / 28 bold</td></tr>
+              <tr><td>color/text</td><td>label, secondaryLabel</td></tr>
+              <tr><td>color/tint</td><td><span class="sw" style="--c: #5856D6"></span>systemIndigo #5856D6</td></tr>
+              <tr><td>tone/idle</td><td><span class="sw" style="--c: var(--tone-idle)"></span>systemOrange #FF9500</td></tr>
+              <tr><td>tone/listening</td><td><span class="sw" style="--c: var(--tone-listen)"></span>systemTeal #30B0C7</td></tr>
+              <tr><td>tone/thinking</td><td><span class="sw" style="--c: var(--tone-think)"></span>systemPurple #AF52DE</td></tr>
+              <tr><td>tone/speaking</td><td><span class="sw" style="--c: var(--tone-speak)"></span>systemPink #FF2D55</td></tr>
+              <tr><td>material/content</td><td>.regularMaterial, .thickMaterial</td></tr>
+              <tr><td>material/controls</td><td>Liquid Glass (.glassEffect)</td></tr>
+              <tr><td>radius/card</td><td>26 pt continuous</td></tr>
+              <tr><td>radius/sheet</td><td>38 pt top, 47 pt floating (55 &minus; 8)</td></tr>
+              <tr><td>space/margin</td><td>16 pt</td></tr>
+              <tr><td>size/target</td><td>44 pt minimum</td></tr>
+              <tr><td>motion/enter</td><td>.spring(duration: 0.3, bounce: 0.15)</td></tr>
+              <tr><td>motion/think-delay</td><td>300 ms</td></tr>
+              <tr><td>time/undo-window</td><td>8 s</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-asks">
+    <div class="sec-head">
+      <h2 id="h-asks">What I&rsquo;d ask next</h2>
+      <p>The answers decide how far the design goes into the character itself and which direction fits.</p>
+    </div>
+    <ul class="asks">
+      <li>
+        <p class="q">Do the companion characters already exist, as 3D assets or renders?</p>
+        <p class="why">If not, I&rsquo;d write the specs for a 3D or motion artist and use AI tools for early concepts.</p>
+      </li>
+      <li>
+        <p class="q">How will the companion render: Rive, Lottie, Unity or video loops?</p>
+        <p class="why">It sets how states blend. Rive can blend live, while video loops need planned transition clips.</p>
+      </li>
+      <li>
+        <p class="q">Native iOS and Android, Flutter or React Native?</p>
+        <p class="why">Blur and translucency cost different amounts on each stack, so the widget spec should match it.</p>
+      </li>
+      <li>
+        <p class="q">What do people open the app for most often?</p>
+        <p class="why">Tasks and calendar point to A. Talking to the companion points to B.</p>
+      </li>
+    </ul>
+  </section>
+
+  <footer class="foot">
+    <span>Elena Matveeva &middot; UI/UX and AI product design</span>
+    <a href="https://elenamatveevame.github.io" target="_blank" rel="noopener">elenamatveevame.github.io</a>
+  </footer>
+</main>
+
+<script>
+(() => {
+  const board = document.getElementById('board');
+  const tpl = document.getElementById('tpl-companion');
+
+  // One character drawing, cloned into every stage. Blinks are staggered so the stages never sync.
+  document.querySelectorAll('[data-companion]').forEach((slot) => {
+    const c = tpl.content.firstElementChild.cloneNode(true);
+    const eyes = c.querySelector('.c-eyes');
+    eyes.style.animationDuration = (4 + Math.random() * 2).toFixed(2) + 's';
+    eyes.style.animationDelay = (-Math.random() * 4).toFixed(2) + 's';
+    slot.replaceWith(c);
+  });
+
+  const GREET = 'Morning, Alex. Priya moved your 1:1 to 3, so the morning is yours.';
+  const SAMPLE = 'Move dinner with Sam to 8';
+  const SCRIPTS = {
+    dinner: {
+      ask: SAMPLE,
+      step: 'Checking Sam\u2019s evening\u2026',
+      reply: 'Done, dinner is at 8 now. I sent Sam the new invite.',
+      effect: 'move'
+    },
+    next: {
+      ask: 'What\u2019s next?',
+      step: 'Looking at your morning\u2026',
+      reply: 'Design review at 10:30 with Priya and Dan. The deck is in the invite.'
+    },
+    undo: {
+      ask: 'Undo that',
+      step: 'Putting it back\u2026',
+      reply: 'Okay, back to 7:30. Sam got the original invite.',
+      effect: 'restore'
+    }
+  };
+  const CHIP = { idle: 'Here when you need me', listening: 'Listening', thinking: 'Thinking', speaking: 'Speaking' };
+  const UNDO_MS = 8000;
+
+  const screens = [...document.querySelectorAll('.screen')];
+  const segButtons = [...document.querySelectorAll('[data-set-state]')];
+  const playBtn = document.getElementById('play-demo');
+  const motionSwitch = document.getElementById('motion-switch');
+  const live = document.getElementById('live');
+
+  let script = SCRIPTS.dinner;
+  let lastLine = GREET;
+  let reduced = false;
+  let playing = false;
+  let timers = [];
+  let undoTimer = 0;
+
+  const each = (sel, fn) => document.querySelectorAll(sel).forEach(fn);
+  const setText = (sel, text) => each(sel, (el) => { el.textContent = text; });
+  const quote = (t) => (t ? '\u201C' + t + '\u201D' : '\u2026');
+
+  function setState(next, { transcript = script.ask, reply = script.reply } = {}) {
+    screens.forEach((s) => { s.dataset.state = next; });
+    segButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.setState === next)));
+    setText('[data-role="chip"]', CHIP[next]);
+    setText('[data-role="you"]', transcript || '\u2026');
+    setText('[data-role="say"]', { idle: lastLine, listening: lastLine, thinking: script.step, speaking: reply }[next]);
+    setText('[data-role="caption"]', {
+      idle: lastLine,
+      listening: quote(transcript),
+      thinking: script.step,
+      speaking: reply
+    }[next]);
+    // Screen readers get whole sentences, never the letter-by-letter typing.
+    live.textContent = { idle: '', listening: 'Listening', thinking: script.step, speaking: script.reply }[next];
+  }
+
+  function setTranscript(t) {
+    setText('[data-role="you"]', t || '\u2026');
+    setText('[data-role="caption"]', quote(t));
+  }
+  function setReply(t) {
+    setText('[data-role="say"]', t);
+    setText('[data-role="caption"]', t);
+  }
+
+  function swapText(el, text) {
+    if (reduced) { el.textContent = text; return; }
+    el.classList.remove('swap');
+    void el.offsetWidth;
+    el.classList.add('swap');
+    setTimeout(() => { el.textContent = text; }, 190);
+    setTimeout(() => el.classList.remove('swap'), 440);
+  }
+  function setDinner(hm, leave, animate) {
+    const put = (sel, text) => each(sel, (el) => (animate ? swapText(el, text) : (el.textContent = text)));
+    put('[data-role="dinner-hm"]', hm);
+    put('[data-role="dinner-time"]', hm + ' PM');
+    put('[data-role="leave-by"]', leave);
+    each('[data-role="dinner"]', (el) => {
+      el.classList.remove('is-updated');
+      if (animate && !reduced) { void el.offsetWidth; el.classList.add('is-updated'); }
+    });
+  }
+
+  function showUndo(on) {
+    clearTimeout(undoTimer);
+    each('[data-action="undo"]', (b) => {
+      b.hidden = !on;
+      const bar = b.querySelector('.undo-timer');
+      bar.style.animation = 'none';
+      void bar.offsetWidth;
+      bar.style.animation = '';
+    });
+    if (on) undoTimer = setTimeout(() => showUndo(false), UNDO_MS);
+  }
+
+  const later = (ms, fn) => timers.push(setTimeout(fn, ms));
+  function setPlaying(on) {
+    playing = on;
+    playBtn.querySelector('span').textContent = on ? 'Stop' : 'Play a request';
+  }
+  function stop() {
+    timers.forEach(clearTimeout);
+    timers = [];
+    setPlaying(false);
+  }
+
+  // One request. Voice goes through Listening and ends the turn after 700 ms of silence;
+  // a typed or tapped request is already complete, so it starts at Thinking.
+  function run(key, voice) {
+    stop();
+    showUndo(false);
+    script = SCRIPTS[key];
+    if (key === 'dinner') setDinner('7:30', '6:50', false);
+    setPlaying(true);
+
+    let t = 0;
+    if (voice) {
+      setState('listening', { transcript: '' });
+      const words = script.ask.split(' ');
+      words.forEach((_, i) => later(400 + i * 260, () => setTranscript(words.slice(0, i + 1).join(' '))));
+      t = 400 + words.length * 260 + 700;
+      later(t, () => setState('thinking'));
+    } else {
+      setState('thinking');
+    }
+
+    const speakAt = t + 1400;
+    const perChar = reduced ? 0 : 40;
+    const typing = script.reply.length * perChar;
+    later(speakAt, () => {
+      setState('speaking', { reply: perChar ? '' : script.reply });
+      for (let i = 1; perChar && i <= script.reply.length; i++) later(i * perChar, () => setReply(script.reply.slice(0, i)));
+    });
+    if (script.effect === 'move') {
+      later(speakAt + 600, () => setDinner('8:00', '7:20', true));
+      later(speakAt + typing + 150, () => showUndo(true));
+    }
+    if (script.effect === 'restore') later(speakAt + 600, () => setDinner('7:30', '6:50', true));
+    later(speakAt + typing + 1300, () => {
+      lastLine = script.reply;
+      setState('idle');
+      setPlaying(false);
+    });
+  }
+
+  function toggleTalk() {
+    if (playing) { stop(); setState('idle'); }
+    else run('dinner', true);
+  }
+
+  segButtons.forEach((b) => b.addEventListener('click', () => {
+    stop();
+    showUndo(false);
+    script = SCRIPTS.dinner;
+    setState(b.dataset.setState);
+  }));
+  playBtn.addEventListener('click', toggleTalk);
+
+  screens.forEach((screen) => {
+    const field = screen.querySelector('[data-role="field"]');
+    const send = screen.querySelector('[data-action="send"]');
+    const setField = (text) => {
+      field.textContent = text || 'Message your companion';
+      field.classList.toggle('is-empty', !text);
+      send.disabled = !text;
+    };
+    screen.addEventListener('click', (e) => {
+      const el = e.target.closest('[data-action], [data-run]');
+      if (!el || !screen.contains(el)) return;
+      if (el.dataset.run) { run(el.dataset.run, false); return; }
+      switch (el.dataset.action) {
+        case 'talk': toggleTalk(); break;
+        case 'type':
+          setField(SAMPLE);
+          screen.dataset.input = 'text';
+          send.focus();
+          break;
+        case 'voice':
+          screen.dataset.input = 'voice';
+          screen.querySelector('[data-action="talk"]').focus();
+          break;
+        case 'send':
+          if (send.disabled) break;
+          setField('');
+          run('dinner', false);
+          break;
+        case 'undo': run('undo', false); break;
+        case 'day': setOpen(!open); break;
+      }
+    });
+  });
+
+  function setReduced(on) {
+    reduced = on;
+    board.dataset.motion = on ? 'reduced' : 'full';
+    motionSwitch.setAttribute('aria-checked', String(on));
+  }
+  setReduced(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  motionSwitch.addEventListener('click', () => setReduced(!reduced));
+
+  // iPhone settings the phones respond to, the same way iOS apps read them.
+  const themeSwitch = document.getElementById('theme-switch');
+  const transparencySwitch = document.getElementById('transparency-switch');
+  themeSwitch.addEventListener('click', () => {
+    const dark = board.dataset.phoneTheme !== 'dark';
+    board.dataset.phoneTheme = dark ? 'dark' : 'light';
+    themeSwitch.setAttribute('aria-checked', String(dark));
+  });
+  transparencySwitch.addEventListener('click', () => {
+    const on = board.dataset.transparency !== 'reduced';
+    board.dataset.transparency = on ? 'reduced' : 'full';
+    transparencySwitch.setAttribute('aria-checked', String(on));
+  });
+
+  // Simulated mic and voice level for Listening and Speaking.
+  const comps = [...document.querySelectorAll('.companion')].map((el, i) => ({
+    el, host: el.closest('[data-state]'), phase: i * 1.7, active: false
+  }));
+  function tick(now) {
+    const t = now / 1000;
+    for (const c of comps) {
+      const s = c.host.dataset.state;
+      if (!reduced && (s === 'listening' || s === 'speaking')) {
+        const gate = Math.sin(t * 2.3 + c.phase) > -0.55 ? 1 : 0.25;
+        const raw = 0.5 + 0.28 * Math.sin(t * 6.3 + c.phase) + 0.18 * Math.sin(t * 11.7 + c.phase * 2.1) + 0.08 * Math.sin(t * 23.1 + c.phase);
+        const lvl = Math.min(1, Math.max(0, raw)) * gate;
+        c.el.style.setProperty('--level', lvl.toFixed(3));
+        if (s === 'speaking') c.el.style.setProperty('--mouth', (0.35 + lvl * 1.35).toFixed(3));
+        else c.el.style.removeProperty('--mouth');
+        c.active = true;
+      } else if (c.active) {
+        c.el.style.removeProperty('--level');
+        c.el.style.removeProperty('--mouth');
+        c.active = false;
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  // Direction B: day sheet, tap, drag or the list button. --p runs 0 (collapsed) to 1 (expanded).
+  const screenB = document.querySelector('.screen-b');
+  const grab = screenB.querySelector('.sheet-grab');
+  const handle = document.getElementById('sheet-handle');
+  const TRAVEL = 368; // the sheet top moves from y 568 to y 200 (pt)
+  let open = false;
+  let drag = null;
+  let suppressClick = false;
+
+  function setOpen(v) {
+    open = v;
+    screenB.style.removeProperty('--p');
+    screenB.classList.toggle('sheet-open', v);
+    handle.setAttribute('aria-expanded', String(v));
+    handle.setAttribute('aria-label', v ? 'Show less of the day' : 'Show the whole day');
+    each('[data-action="day"]', (b) => b.setAttribute('aria-expanded', String(v)));
+  }
+  grab.addEventListener('pointerdown', (e) => {
+    // The phone is zoomed to fit the page, so convert screen pixels back to points.
+    const zoom = screenB.getBoundingClientRect().width / 393 || 1;
+    drag = { y: e.clientY, zoom, p0: open ? 1 : 0, p: open ? 1 : 0, moved: false, id: e.pointerId };
+  });
+  grab.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const dy = e.clientY - drag.y;
+    if (!drag.moved) {
+      if (Math.abs(dy) < 5) return;
+      drag.moved = true;
+      grab.setPointerCapture(drag.id);
+      screenB.classList.add('dragging');
+    }
+    drag.p = Math.min(1, Math.max(0, drag.p0 - dy / (TRAVEL * drag.zoom)));
+    screenB.style.setProperty('--p', drag.p.toFixed(3));
+  });
+  const endDrag = () => {
+    if (!drag) return;
+    const d = drag;
+    drag = null;
+    if (!d.moved) return;
+    screenB.classList.remove('dragging');
+    suppressClick = true;
+    setOpen(d.p > 0.5);
+  };
+  grab.addEventListener('pointerup', endDrag);
+  grab.addEventListener('pointercancel', endDrag);
+  grab.addEventListener('click', () => {
+    if (suppressClick) { suppressClick = false; return; }
+    setOpen(!open);
+  });
+})();
+</script>
