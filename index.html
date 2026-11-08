@@ -2796,17 +2796,83 @@
     document.getElementById('case-view').hidden = true;
     document.getElementById('home-view').hidden = false;
   }
+  /* clean addresses on the live site: /salad instead of #case-salad; sections scroll and the address stays clean.
+     anywhere else (a local file, a preview) the #hash routing below keeps working */
+  var CLEAN = /(^|\.)elenamatveeva\.eu$|^elenamatveevame\.github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname) && !!(window.history && history.pushState);
+  var calm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var SLUG = { smysl: 'prd-delivery', run: 'runon', groundrisk: 'ground-risk' };
+  function slugOf(id){ return SLUG[id] || id; }
+  function idOf(slug){ for(var k in SLUG){ if(SLUG[k] === slug){ return k; } } return slug; }
+  function caseFromUrl(){
+    var m = location.hash.match(/^#case-([a-z]+)$/), id = m ? m[1] : null;
+    if(!id && CLEAN){
+      var p = location.pathname.match(/^\/([a-z-]+)\/?$/);
+      id = p ? idOf(p[1]) : null;
+      if(!id){ try{ id = new URLSearchParams(location.search).get('case'); }catch(e){} }
+    }
+    return id && CASES.indexOf(id) !== -1 ? id : null;
+  }
+  function query(){
+    try{ var q = new URLSearchParams(location.search); q.delete('case'); var s = q.toString(); return s ? '?' + s : ''; }catch(e){ return ''; }
+  }
   function route(){
-    var m = location.hash.match(/^#case-([a-z]+)$/);
-    if(m && CASES.indexOf(m[1]) !== -1){
-      showCase(m[1]);
+    var id = caseFromUrl();
+    if(id){
+      showCase(id);
+      if(CLEAN && location.pathname + location.search + location.hash !== '/' + slugOf(id) + query()){ history.replaceState({ v: 'case', id: id }, '', '/' + slugOf(id) + query()); }
     } else {
       showHome();
       var target = location.hash.length > 1 ? document.querySelector(location.hash) : null;
-      if(target){ target.scrollIntoView(); } else { window.scrollTo(0,0); }
+      var st = history.state;
+      if(target){ target.scrollIntoView(); }
+      else if(st && typeof st.y === 'number'){ window.scrollTo(0, st.y); }
+      else { window.scrollTo(0,0); }
+      if(CLEAN && (location.hash || location.pathname !== '/')){ history.replaceState(st && typeof st.y === 'number' ? st : null, '', '/' + query()); }
     }
+    document.dispatchEvent(new Event('em:route'));
   }
+  function go(href){
+    if(!CLEAN){
+      if(href === '#'){ history.replaceState(null, '', location.pathname + location.search); route(); return; }
+      if(location.hash === href){ var t0 = document.querySelector(href); if(t0){ t0.scrollIntoView({ behavior: calm ? 'auto' : 'smooth' }); } }
+      else { location.hash = href; }
+      return;
+    }
+    var m = href.match(/^#case-([a-z]+)$/), inCase = document.getElementById('home-view').hidden;
+    if(m && CASES.indexOf(m[1]) !== -1){
+      if(!inCase){ history.replaceState({ y: window.scrollY }, '', location.pathname + location.search); }
+      history.pushState({ v: 'case', id: m[1] }, '', '/' + slugOf(m[1]) + query());
+      showCase(m[1]);
+    } else {
+      var target = href.length > 1 ? document.querySelector(href) : null;
+      if(inCase){ history.pushState(null, '', '/' + query()); showHome(); window.scrollTo(0, 0); }
+      if(target){ target.scrollIntoView({ behavior: (calm || inCase) ? 'auto' : 'smooth' }); }
+      else { window.scrollTo({ top: 0, behavior: (calm || inCase) ? 'auto' : 'smooth' }); }
+    }
+    document.dispatchEvent(new Event('em:route'));
+  }
+  window.emGo = go;
+  window.emCurrentCase = function(){ return document.getElementById('home-view').hidden ? caseFromUrl() : null; };
+  document.addEventListener('click', function(e){
+    if(!CLEAN || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey){ return; }
+    var a = e.target.closest && e.target.closest('a[href^="#"]');
+    if(!a || a.target === '_blank'){ return; }
+    var href = a.getAttribute('href');
+    if(href !== '#' && !/^#case-[a-z]+$/.test(href)){
+      var t; try{ t = document.querySelector(href); }catch(err){ t = null; }
+      if(!t){ return; }
+    }
+    e.preventDefault();
+    go(href);
+  });
+  /* the browser tab names the open case */
+  var baseTitle = document.title;
+  document.addEventListener('em:route', function(){
+    var h = document.querySelector('.case-detail:not([hidden]) h1');
+    document.title = (!document.getElementById('home-view').hidden || !h) ? baseTitle : h.textContent + ' · Elena Matveeva';
+  });
   window.addEventListener('hashchange', route);
+  window.addEventListener('popstate', route);
   route();
 
   var shareBtn = document.getElementById('shareBtn');
@@ -3058,10 +3124,11 @@ document.querySelectorAll('[data-doc]').forEach(function(doc){
   var lastCase = get('em_last_case');
   set('em_last_visit', String(now));
   function trackCase(){
-    var m = location.hash.match(/^#case-([a-z]+)$/);
-    if(m && NAMES[m[1]]){ set('em_last_case', m[1]); }
+    var m = location.hash.match(/^#case-([a-z]+)$/), id = m ? m[1] : (window.emCurrentCase ? window.emCurrentCase() : null);
+    if(id && NAMES[id]){ set('em_last_case', id); }
   }
   window.addEventListener('hashchange', trackCase);
+  document.addEventListener('em:route', trackCase);
 
   /* ---------- hiring panel ---------- */
   var fit = document.getElementById('fit');
@@ -3422,7 +3489,8 @@ document.querySelectorAll('[data-doc]').forEach(function(doc){
     k = (k || '').toLowerCase();
     if(GO[k]){
       ev.preventDefault();
-      if(location.hash === GO[k]){ var el = document.querySelector(GO[k]); if(el){ el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); } }
+      if(window.emGo){ window.emGo(GO[k]); }
+      else if(location.hash === GO[k]){ var el = document.querySelector(GO[k]); if(el){ el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); } }
       else { location.hash = GO[k]; }
     } else if(k === 'v'){
       var cv = document.querySelector('a[data-cv-link]'); if(cv){ cv.click(); }
@@ -3522,6 +3590,8 @@ document.querySelectorAll('[data-doc]').forEach(function(doc){
   window.addEventListener('scroll', update, { passive: true });
   window.addEventListener('resize', update);
   window.addEventListener('hashchange', function(){ setTimeout(update, 0); });
+  document.addEventListener('em:route', function(){ setTimeout(update, 0); });
+  window.addEventListener('popstate', function(){ setTimeout(update, 0); });
   update();
 })();
 </script>
