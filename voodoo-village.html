@@ -1619,6 +1619,81 @@
   article[data-id="groundrisk"] .case-demo-frame iframe{width:100% !important;height:100% !important;border-radius:0 !important;border:0;}
   @media (max-width:860px){ article[data-id="groundrisk"] .case-demo-frame{height:760px !important;} }
 </style>
+<style>
+  /* ================= polish pass ================= */
+
+  /* 1 · hero */
+  .hero::before,.case-detail > .wrap::before,.contact-section::before{content:none;display:none;}
+  @media (min-width:981px){
+    .hero-split{align-items:center;}
+    .hero-main > :last-child{margin-bottom:0;}
+    .booth-hero{margin-top:0;}
+  }
+
+  /* 2 · case covers: one format, whole pictures */
+  .case-full-img{flex:0 0 320px;width:320px;height:240px;aspect-ratio:4/3;object-fit:cover;object-position:50% 50%;background:var(--cream2);border-radius:var(--r-img);}
+  .case-full[href="#case-rota"] .case-full-img{object-fit:contain;background:#EFEFED;}
+  .case-full .fc-doc.case-full-img{gap:6px;padding:20px 22px;font-size:12px;line-height:1.45;}
+  .case-full .fc-doc.case-full-img .fc-doc-head{padding-bottom:8px;}
+  .case-full .fc-doc.case-full-img .fc-doc-foot{padding-top:8px;}
+  .case-full,.case-full:hover{padding:28px 0;}
+  @media (max-width:760px){
+    .case-full-img{flex-basis:100%;width:100%;height:auto;aspect-ratio:4/3;}
+    .case-full .fc-doc.case-full-img{aspect-ratio:auto;font-size:12.5px;gap:8px;padding:22px;}
+    .case-full,.case-full:hover{padding:28px 0 30px;}
+  }
+
+  /* 3 · one step between sections */
+  #about,#work,#experience,#skills,#answers{padding-bottom:88px !important;}
+  #work,#experience,#skills,#answers{padding-top:88px;}
+  .contact-section{margin-top:88px;}
+  @media (min-width:981px){ .contact-section{min-height:0;padding:48px;} }
+  @media (max-width:860px){
+    #about,#work,#experience,#skills,#answers{padding-bottom:56px !important;}
+    #work,#experience,#skills,#answers{padding-top:56px;}
+    .contact-section{margin-top:56px;}
+  }
+
+  /* 4 · ruled lists share one width */
+  .timeline,.qa-list{max-width:none;}
+
+  /* 5 · header */
+  nav,nav.is-scrolled{box-shadow:none;}
+  nav.is-scrolled{background:rgba(255,255,255,.97);border-bottom-color:var(--line);}
+
+  /* 7 · titles and short texts break evenly */
+  .case-detail h1{text-wrap:balance;}
+  .case-intro,.case-full-cap p,.hero p.lead,.section-sub{text-wrap:pretty;}
+
+  /* 8 · one demo frame */
+  .case-demo-frame,.proto-phone{padding:0;border:1px solid var(--line);border-radius:var(--r-img);background:#fff;box-shadow:none;overflow:hidden;}
+  .case-demo-frame iframe,.case-demo-frame .xp-view,.proto-phone .proto-screen{border-radius:0;}
+  .case-demo-frame.rota-frame,.case-demo-frame.companion-frame{border-radius:var(--r-img);}
+  .case-demo-frame.rota-frame iframe,.case-demo-frame.companion-frame iframe{border-radius:0;}
+
+  /* 9 · weight, focus, hover */
+  .back-link,.case-full .cc-cta,.cc-cta,.earlier-strip strong,.tl-more,.radio-line b,.contact-section .radio-line b{font-weight:400;}
+  a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visible,.contact-section .radio-btn:focus-visible{outline:2px solid var(--blue);outline-offset:3px;}
+  .case-full:hover .case-full-img{transform:none;}
+  .case-full h3{transition:color .15s ease;}
+  .case-full:hover h3,.case-full:focus-visible h3{color:var(--blue);}
+  .tl-item > summary,.tl-item > summary:hover{background:transparent;margin:0;padding-left:0;padding-right:0;border-radius:0;}
+  .tl-role{transition:color .15s ease;}
+  .tl-item > summary:hover .tl-role{color:var(--blue);}
+
+  /* 10 · phone */
+  @media (max-width:860px){
+    .glance{grid-template-columns:minmax(0,1fr);}
+    .glance > div,.glance > div + div,.glance > div:nth-child(3),.glance .g-out{display:grid;grid-template-columns:96px minmax(0,1fr);column-gap:16px;align-items:baseline;grid-column:auto;padding:13px 0;border-left:0;border-top:0;}
+    .glance > div + div,.glance > div:nth-child(n+3){border-top:1px solid var(--line);}
+    .glance dt{margin:0;}
+  }
+  @media (max-width:600px){
+    .contact-section .radio-line{display:block;line-height:1.6;}
+    .contact-section .radio-line span{display:inline;}
+    .contact-section .radio-btn{display:inline-flex;height:auto;padding:0;border:0;margin:6px 0 0;}
+  }
+</style>
 </head>
 <body>
 
@@ -3419,9 +3494,10 @@ document.querySelectorAll('[data-doc]').forEach(function(doc){
     } else {
       msg = 'Hi, I am Morris, the office cat, and this is my brother Corr. Click us if you need anything.';
     }
-    peek();
-    say(msg, returning ? 9000 : 6000);
-    tuckLater(returning ? 9500 : 6500);
+    peek(); tuckLater(2600);
+    var greeted = false;
+    function greet(){ if(greeted || !bubble.hidden) return; greeted = true; peek(); say(msg, 6000); tuckLater(6500); }
+    [btn, document.getElementById('corrBtn')].forEach(function(b){ if(!b) return; b.addEventListener('mouseenter', greet); b.addEventListener('focus', greet); });
   }
   function onScroll(){ if(window.scrollY > 700){ firstPeek(); } }
   window.addEventListener('scroll', onScroll, {passive:true});
